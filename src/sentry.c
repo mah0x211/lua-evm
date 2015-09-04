@@ -32,7 +32,7 @@ static int writable_new_lua( lua_State *L )
 {
     int argc = lua_gettop( L );
     sentry_t *s = luaL_checkudata( L, 1, SENTRY_MT );
-    int fd = luaL_checkint( L, 2 );
+    int fd = (int)luaL_checkinteger( L, 2 );
     int ctx = LUA_NOREF;
     int oneshot = 0;
     int edge = 0;
@@ -86,7 +86,7 @@ static int readable_new_lua( lua_State *L )
 {
     int argc = lua_gettop( L );
     sentry_t *s = luaL_checkudata( L, 1, SENTRY_MT );
-    int fd = luaL_checkint( L, 2 );
+    int fd = (int)luaL_checkinteger( L, 2 );
     int ctx = LUA_NOREF;
     int oneshot = 0;
     int edge = 0;
@@ -140,7 +140,7 @@ static int signal_new_lua( lua_State *L )
 {
     int argc = lua_gettop( L );
     sentry_t *s = luaL_checkudata( L, 1, SENTRY_MT );
-    int signo = luaL_checkint( L, 2 );
+    int signo = (int)luaL_checkinteger( L, 2 );
     int ctx = LUA_NOREF;
     int oneshot = 0;
     sigset_t ss;
@@ -237,7 +237,7 @@ static int wait_lua( lua_State *L )
 {
     sentry_t *s = luaL_checkudata( L, 1, SENTRY_MT );
     // defaout timeout: 1 sec
-    int timeout = luaL_optint( L, 2, -1 );
+    int timeout = (int)luaL_optinteger( L, 2, -1 );
     sentry_ev_t *e = NULL;
     int isdel = 0;
     
@@ -352,7 +352,7 @@ static int new_lua( lua_State *L )
     // arg#1 number of event buffer size
     if( !lua_isnoneornil( L, 1 ) )
     {
-        nbuf = luaL_checkint( L, 1 );
+        nbuf = (int)luaL_checkinteger( L, 1 );
         if( nbuf < 1 || nbuf > INT_MAX ){
             return luaL_error( 
                 L, "event buffer value range must be 1 to %d", INT_MAX 
