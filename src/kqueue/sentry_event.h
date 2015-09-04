@@ -49,8 +49,9 @@ static inline int sentry_wait( sentry_t *s, int timeout )
     struct timespec ts = {
         timeout, 0
     };
+    struct timespec *tsp = ( timeout < 0 ) ? NULL : &ts;
     
-    return kevent( s->fd, NULL, 0, s->evs, (int)s->nreg, &ts );
+    return kevent( s->fd, NULL, 0, s->evs, (int)s->nreg, tsp );
 }
 
 

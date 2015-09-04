@@ -46,7 +46,8 @@ static inline int sev_is_hup( sentry_ev_t *e )
 
 static inline int sentry_wait( sentry_t *s, int timeout )
 {
-    return epoll_pwait( s->fd, s->evs, s->nreg, timeout * 1000, NULL );
+    return epoll_pwait( s->fd, s->evs, s->nreg,
+                        ( timeout < 0 ) ? -1 : timeout * 1000, NULL );
 }
 
 

@@ -237,16 +237,11 @@ static int wait_lua( lua_State *L )
 {
     sentry_t *s = luaL_checkudata( L, 1, SENTRY_MT );
     // defaout timeout: 1 sec
-    int timeout = luaL_optint( L, 2, 1 );
+    int timeout = luaL_optint( L, 2, -1 );
     sentry_ev_t *e = NULL;
     int isdel = 0;
     
     // check arguments
-    // timeout
-    if( timeout < 0 ){
-        return luaL_argerror( L, 2, "timeout must be bigger than 0" );
-    }
-    
     // cleanup current events
     while( ( e = sentry_getev( s, &isdel ) ) )
     {
