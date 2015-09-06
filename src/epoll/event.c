@@ -43,15 +43,8 @@ static int unwatch_lua( lua_State *L )
             case EVFILT_SIGNAL:
                 sigdelset( &e->s->signals, e->ident );
             case EVFILT_TIMER:
-                fddelset( &e->s->fds, e->reg.data.fd );
-            break;
-            
             case EVFILT_READ:
             case EVFILT_WRITE:
-                if( e->sibling ){
-                    ((sentry_ev_t*)e->sibling)->sibling = NULL;
-                    e->sibling = NULL;
-                }
                 fddelset( &e->s->fds, e->reg.data.fd );
             break;
         }
@@ -74,8 +67,6 @@ static int watch_lua( lua_State *L )
     
     if( !lstate_isref( e->ref ) )
     {
-        sentry_ev_t *sibling = NULL;
-        
         // register event
         if( sentry_register( e->s, e ) != 0 ){
             // got error
@@ -89,16 +80,8 @@ static int watch_lua( lua_State *L )
             case EVFILT_SIGNAL:
                 sigaddset( &e->s->signals, e->ident );
             case EVFILT_TIMER:
-                fdaddset( &e->s->fds, e->reg.data.fd, e );
-            break;
-            
             case EVFILT_READ:
             case EVFILT_WRITE:
-                sibling = fdismember( &e->s->fds, e->reg.data.fd );
-                if( sibling ){
-                    sibling->sibling = (void*)e;
-                    e->sibling = (void*)sibling;
-                }
                 fdaddset( &e->s->fds, e->reg.data.fd, e );
             break;
         }

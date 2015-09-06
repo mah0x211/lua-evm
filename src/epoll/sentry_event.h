@@ -70,16 +70,6 @@ CHECK_NEXT:
         e->evt = *evt;
         delflg = sev_is_oneshot( e ) | sev_is_hup( e );
         switch( e->filter ){
-            // switch event
-            case EVFILT_READ:
-            case EVFILT_WRITE:
-                // unlink sibling
-                if( delflg && e->sibling ){
-                    ((sentry_ev_t*)e->sibling)->sibling = NULL;
-                    goto DELETE_EVENT;
-                }
-            break;
-            
             // drain data
             case EVFILT_SIGNAL:
                 read( evt->data.fd, drain, sizeof( struct signalfd_siginfo ) );
@@ -158,19 +148,13 @@ static inline int sev_fd_new( lua_State *L, sentry_t *s, int ctx, int fd,
         e->ident = fd;
         e->s = s;
         e->ctx = ctx;
-        e->sibling = sibling;
         e->filter = filter;
         e->reg = evt;
         
-        if( sentry_register( s, e ) == 0 )
-        {
+        if( sentry_register( s, e ) == 0 ){
             // set metatable
             lstate_setmetatable( L, SENTRY_EVENT_MT );
             e->ref = lstate_refat( L, -1 );
-            if( sibling ){
-                sibling->sibling = (void*)e;
-            }
-            
             return 0;
         }
         // remove event
@@ -214,7 +198,6 @@ static inline int sev_signal_new( lua_State *L, sentry_t *s, int ctx, int signo,
         e->ident = signo;
         e->s = s;
         e->ctx = ctx;
-        e->sibling = NULL;
         e->filter = EVFILT_SIGNAL;
         e->reg.data.fd = fd;
         e->reg.events = EPOLLRDHUP|EPOLLIN|( oneshot ? EPOLLONESHOT : 0 );
@@ -256,7 +239,6 @@ static inline int sev_timer_new( lua_State *L, sentry_t *s, int ctx,
         e->ident = (uintptr_t)timeout;
         e->s = s;
         e->ctx = ctx;
-        e->sibling = NULL;
         e->filter = EVFILT_TIMER;
         e->reg.data.fd = fd;
         e->reg.events = EPOLLRDHUP|EPOLLIN|( oneshot ? EPOLLONESHOT : 0 );

@@ -65,7 +65,6 @@ enum {
 typedef struct {
     uintptr_t ident;
     sentry_t *s;
-    void *sibling;
     kevt_t reg;
     kevt_t evt;
     int filter;
