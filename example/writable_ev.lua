@@ -41,16 +41,15 @@ repeat
     print( 'wait #' .. #s );
     nevt = assert( s:wait( waitsec ) );
     print( 'got number of event', nevt );
-    while nevt > 0 do
-        nevt, isdel, ev = s:getevent();
-        if ev then
-            nrep = nrep + 1;
-            assert( e == ev, 'invalid implements' );
-            print('unwatch', assert( ev:unwatch() ) );
-            if nrep == 1 then
-                print('rewatch', assert( ev:watch() ) );
-            end
+    ev, isdel = s:getevent();
+    while ev do
+        nrep = nrep + 1;
+        assert( e == ev, 'invalid implements' );
+        print('unwatch', assert( ev:unwatch() ) );
+        if nrep == 1 then
+            print('rewatch', assert( ev:watch() ) );
         end
+        ev, isdel = s:getevent();
     end
 until #s == 0;
 

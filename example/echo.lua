@@ -17,6 +17,7 @@ local RecvTotal = 0;
 local SendTotal = 0;
 
 local function dispose( req )
+    print( 'delete request', req.evr, req.evw );
     if req.evr then
         req.evr:unwatch();
     end
@@ -30,7 +31,6 @@ end
 
 local function echo( req, isdel )
     if isdel then
-        print( 'delete request' );
         dispose( req );
     elseif req.waitw then
         local len, err, again = send( req.fd, req.msg );
@@ -128,16 +128,16 @@ local function createServer()
             print(
                 ('rt: %d, st: %d'):format( RecvTotal, SendTotal )
             );
-        end
-        while nevt > 0 do
-            nevt, isdel, ev, ctx = s:getevent();
-            --print('got event', nevt, isdel, ev, ctx );
-            
-            if ev == sev then
-                acceptClient( s, sfd );
-            else
-                ctx.isdel = isdel;
-                echo( ctx );
+        else
+            ev, isdel, ctx = s:getevent();
+            while ev do
+                --print('got event', nevt, isdel, ev, ctx );
+                if ev == sev then
+                    acceptClient( s, sfd );
+                else
+                    echo( ctx, isdel );
+                end
+                ev, isdel, ctx = s:getevent();
             end
         end
     until #s == 0;
