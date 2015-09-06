@@ -97,7 +97,7 @@ CHECK_NEXT:
         
         if( delflg & EV_EOF ){
             evt->flags = EV_DELETE;
-            kevent( e->s->fd, evt, 1, NULL, 0, NULL );
+            kevent( s->fd, evt, 1, NULL, 0, NULL );
         }
         
         e = (sentry_ev_t*)evt->udata;
