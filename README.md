@@ -3,6 +3,9 @@
 kqueue/epoll event sentry module.
 
 
+**NOTE: Do not use this module. this module is under heavy development.**
+
+
 ## Installation
 
 ```sh
@@ -112,15 +115,14 @@ wait until event occurring.
 - `err:string`: error string.
 
 
-### nevt, isdel, ev, ctx = s:getevent()
+### ev, isdel, ctx = s:getevent()
 
 returns an event object.
 
 **Returns**
 
-- `nevt:int`: the remaining number of events.
-- `isdel:boolean`: true on event unregister.
 - `ev:userdata`: event object or nil.
+- `isdel:boolean`: true on event unregister.
 - `ctx:any`: context object.
 
 
