@@ -285,14 +285,11 @@ static int getevent_lua( lua_State *L )
     int isdel = 0;
     sentry_ev_t *e = sentry_getev( s, &isdel );
     
-    lua_pushinteger( L, s->nevt );
-    // delete flag
-    lua_pushboolean( L, isdel );
-    
-    // return event and number-of-event
+    // return event, isdel and context
     if( e )
     {
         lstate_pushref( L, e->ref );
+        lua_pushboolean( L, isdel );
         // release reference if deleted
         if( isdel ){
             e->ref = lstate_unref( L, e->ref );
@@ -301,15 +298,13 @@ static int getevent_lua( lua_State *L )
         // push context if retained
         if( lstate_isref( e->ctx ) ){
             lstate_pushref( L, e->ctx );
-            return 4;
+            return 3;
         }
-    }
-    else {
-        lua_pushnil( L );
+        
+        return 2;
     }
     
-    
-    return 3;
+    return 0;
 }
 
 
