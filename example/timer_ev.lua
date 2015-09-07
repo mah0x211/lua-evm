@@ -36,6 +36,8 @@ local s = assert( sentry.new() );
 local e = assert( s:timer( sec, nil, oneshot ) );
 local nevt, err, ev, isdel;
 
+print( 'event type', e:typeof(), sentry.EV_TIMER );
+
 repeat
     print( 'wait #' .. #s );
     nevt = assert( s:wait( waitsec ) );

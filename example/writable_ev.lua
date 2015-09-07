@@ -37,6 +37,8 @@ local s = assert( sentry.new() );
 local e = s:writable( 1, oneshot, edgeTrigger );
 local nevt, ev, isdel;
 
+print( 'event type', e:typeof(), sentry.EV_WRITABLE );
+
 repeat
     print( 'wait #' .. #s );
     nevt = assert( s:wait( waitsec ) );

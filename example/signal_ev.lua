@@ -40,6 +40,8 @@ local nevt, err, ev, isdel;
 -- block SIGINT
 assert( signal.block( signal.SIGINT ) );
 
+print( 'event type', e:typeof(), sentry.EV_SIGNAL );
+
 print( 'type ^C' );
 repeat
     print( 'wait #' .. #s );
