@@ -210,5 +210,35 @@ static inline void sentry_dbl2timespec( double tval, struct timespec *ts )
 }
 
 
+enum {
+    SENTRY_EV_READABLE = 1,
+    SENTRY_EV_WRITABLE,
+    SENTRY_EV_TIMER,
+    SENTRY_EV_SIGNAL
+};
+
+
+static inline int sentry_event_type( sentry_ev_t *e )
+{
+    switch( e->reg.filter ){
+        case EVFILT_READ:
+            return SENTRY_EV_READABLE;
+
+        case EVFILT_WRITE:
+            return SENTRY_EV_WRITABLE;
+
+        case EVFILT_TIMER:
+            return SENTRY_EV_TIMER;
+
+        case EVFILT_SIGNAL:
+            return SENTRY_EV_SIGNAL;
+        
+        // unknown event
+        default:
+            return -1;
+    }
+}
+
+
 #endif
 

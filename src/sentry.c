@@ -448,6 +448,11 @@ LUALIB_API int luaopen_sentry( lua_State *L )
     lua_newtable( L );
     lstate_fn2tbl( L, "new", new_lua );
     lstate_fn2tbl( L, "default", default_lua );
+    // add event type
+    lstate_num2tbl( L, "EV_READABLE", SENTRY_EV_READABLE );
+    lstate_num2tbl( L, "EV_WRITABLE", SENTRY_EV_WRITABLE );
+    lstate_num2tbl( L, "EV_TIMER", SENTRY_EV_TIMER );
+    lstate_num2tbl( L, "EV_SIGNAL", SENTRY_EV_SIGNAL );
     
     return 1;
 }
