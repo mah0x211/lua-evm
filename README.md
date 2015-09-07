@@ -12,35 +12,51 @@ kqueue/epoll event sentry module.
 luarocks install sentry --from=http://mah0x211.github.io/rocks/
 ```
 
+## Constants
+
+**Event Types**
+
+- `sentry.EV_READABLE` readable event.
+- `sentry.EV_WRITABLE` writable event.
+- `sentry.EV_TIMER` timer event.
+- `sentry.EV_SIGNAL` signal event.
+
+
 ## Creating a Sentry
 
 ### s, err = sentry.new( [bufsize:int] );
 
 returns the sentry object.
 
+
 **Parameters**
 
 - `bufsize:int`: event buffer size. (`default 128`)
+
 
 **Returns**
 
 - `s:userdata`: sentry object on success, or nil on failure.
 - `err:string`: error string.
 
+
 **NOTE: bufsize will be automatically resized to larger than specified size if need more buffer allocation.**
 
 
 ## Sentry Methods
 
+
 ### ev, err = s:timer( timeout:number [, ctx:any [, oneshot:boolean]] )
 
 creating a timer event object and register that event.
+
 
 **Parameters**
 
 - `timeout:number`: timeout seconds.
 - `ctx:any`: context object.
 - `oneshot:boolean`: automatically unregister this event when event occurred.
+
 
 **Returns**
 
@@ -52,11 +68,13 @@ creating a timer event object and register that event.
 
 creating a signal event object and register that event.
 
+
 **Parameters**
 
 - `signo:int`: signal number.
 - `ctx:any`: context object.
 - `oneshot:boolean`: automatically unregister this event when event occurred.
+
 
 **Returns**
 
@@ -67,6 +85,7 @@ creating a signal event object and register that event.
 ### ev, err = s:readable( fd:int [, ctx:any [, oneshot:boolean [, edge:boolean]]] )
 
 creating a readable event object and register that event.
+
 
 **Parameters**
 
@@ -86,6 +105,7 @@ creating a readable event object and register that event.
 
 creating a writable event object and register that event.
 
+
 **Parameters**
 
 - `fd:int`: descriptor.
@@ -104,6 +124,7 @@ creating a writable event object and register that event.
 
 wait until event occurring.
 
+
 **Parameters**
 
 - `timeout:int`: wait until specified timeout seconds. `default: 1 second`
@@ -119,6 +140,7 @@ wait until event occurring.
 
 returns an event object.
 
+
 **Returns**
 
 - `ev:userdata`: event object or nil.
@@ -132,12 +154,27 @@ returns an event object.
 
 returns an event ident.
 
+
 **Returns**
 
 - `id`
     - `timeout:number` if timer event.
     - `signo:int` if signal event.
     - `fd:int` if readable or writable event.
+
+
+### evtype = ev:typeof()
+
+returns an event type.
+
+
+**Returns**
+
+- `evtype:int`: following type.
+    - `EV_READABLE` readable event.
+    - `EV_WRITABLE` writable event.
+    - `EV_TIMER` timer event.
+    - `EV_SIGNAL` signal event.
 
 
 ### ctx = ev:context()
