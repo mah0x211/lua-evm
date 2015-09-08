@@ -218,7 +218,7 @@ enum {
 };
 
 
-static inline int sentry_event_type( sentry_ev_t *e )
+static inline int sev_type( sentry_ev_t *e )
 {
     switch( e->reg.filter ){
         case EVFILT_READ:

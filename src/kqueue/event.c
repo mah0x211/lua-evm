@@ -122,7 +122,8 @@ static int typeof_lua( lua_State *L )
 {
     sentry_ev_t *e = luaL_checkudata( L, 1, SENTRY_EVENT_MT );
 
-    lua_pushnumber( L, sentry_event_type( e ) );
+    lua_pushinteger( L, sev_type( e ) );
+    
     return 1;
 }
 
