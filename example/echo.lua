@@ -129,7 +129,7 @@ local function createServer()
                 ('rt: %d, st: %d'):format( RecvTotal, SendTotal )
             );
         else
-            ev, isdel, ctx = s:getevent();
+            ev, etype, isdel, ctx = s:getevent();
             while ev do
                 --print('got event', nevt, isdel, ev, ctx );
                 if ev == sev then
@@ -137,7 +137,7 @@ local function createServer()
                 else
                     echo( ctx, isdel );
                 end
-                ev, isdel, ctx = s:getevent();
+                ev, etype, isdel, ctx = s:getevent();
             end
         end
     until #s == 0;
