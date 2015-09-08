@@ -289,6 +289,7 @@ static int getevent_lua( lua_State *L )
     if( e )
     {
         lstate_pushref( L, e->ref );
+        lua_pushinteger( L, sev_type( e ) );
         lua_pushboolean( L, isdel );
         // release reference if deleted
         if( isdel ){
@@ -298,10 +299,10 @@ static int getevent_lua( lua_State *L )
         // push context if retained
         if( lstate_isref( e->ctx ) ){
             lstate_pushref( L, e->ctx );
-            return 3;
+            return 4;
         }
         
-        return 2;
+        return 3;
     }
     
     return 0;
