@@ -1,9 +1,15 @@
-# lua-sentry
+lua-sentry
+===
 
 kqueue/epoll event sentry module.
 
-
 **NOTE: Do not use this module. this module is under heavy development.**
+
+
+## TODO
+
+- kevent: should be supporting a EV_ERROR flag.
+- epoll: should be supporting a EPOLLERR event.
 
 
 ## Installation
