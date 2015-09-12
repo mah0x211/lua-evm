@@ -29,8 +29,8 @@ local function dispose( req )
     close( req.fd );
 end
 
-local function echo( req, isdel )
-    if isdel then
+local function echo( req, ishup )
+    if ishup then
         dispose( req );
     elseif req.waitw then
         local len, err, again = send( req.fd, req.msg );
@@ -108,7 +108,7 @@ local function createServer()
     -- create loop
     local s = assert( sentry.new() );
     local clients = {};
-    local sfd, sev, ev, nevt, ctx;
+    local sfd, sev, ev, nevt, ishup, ctx;
     
     -- create bind socket
     sfd = assert( bind( HOST, PORT, SOCK_STREAM, NONBLOCK, REUSEADDR ) );
@@ -129,15 +129,15 @@ local function createServer()
                 ('rt: %d, st: %d'):format( RecvTotal, SendTotal )
             );
         else
-            ev, etype, isdel, ctx = s:getevent();
+            ev, etype, ishup, ctx = s:getevent();
             while ev do
-                --print('got event', nevt, isdel, ev, ctx );
+                --print('got event', nevt, ishup, ev, ctx );
                 if ev == sev then
                     acceptClient( s, sfd );
                 else
-                    echo( ctx, isdel );
+                    echo( ctx, ishup );
                 end
-                ev, etype, isdel, ctx = s:getevent();
+                ev, etype, ishup, ctx = s:getevent();
             end
         end
     until #s == 0;

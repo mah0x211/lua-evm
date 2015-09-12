@@ -35,7 +35,7 @@ local nrep = 0;
 local oneshot = false;
 local s = assert( sentry.new() );
 local e = assert( s:signal( signal.SIGINT, nil, oneshot ) );
-local nevt, err, ev, etype, isdel;
+local nevt, err, ev, etype, ishup;
 
 -- block SIGINT
 assert( signal.block( signal.SIGINT ) );
@@ -47,7 +47,7 @@ repeat
     print( 'wait #' .. #s );
     nevt = assert( s:wait( waitsec ) );
     print( 'got number of event', nevt );
-    ev, etype, isdel = s:getevent();
+    ev, etype, ishup = s:getevent();
     while ev do
         nrep = nrep + 1;
         assert( e == ev, 'invalid implements' );
@@ -55,7 +55,7 @@ repeat
         if nrep == 1 then
             print('rewatch', assert( ev:watch() ) );
         end
-        ev, etype, isdel = s:getevent();
+        ev, etype, ishup = s:getevent();
     end
 until #s == 0;
 

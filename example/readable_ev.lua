@@ -35,7 +35,7 @@ local edgeTrigger = true;
 local s = assert( sentry.new() );
 -- create io watcher: 0 = stdin
 local e = s:readable( 0, oneshot, edgeTrigger );
-local nevt, ev, etype, isdel;
+local nevt, ev, etype, ishup;
 
 print( 'event type', e:typeof(), sentry.EV_READABLE );
 
@@ -43,7 +43,7 @@ repeat
     print( 'wait #' .. #s );
     nevt = assert( s:wait( waitsec ) );
     print( 'got number of event', nevt );
-    ev, etype, isdel = s:getevent();
+    ev, etype, ishup = s:getevent();
     while ev do
         nrep = nrep + 1;
         assert( e == ev, 'invalid implements' );
@@ -51,7 +51,7 @@ repeat
         if nrep == 1 then
             print('rewatch', assert( ev:watch() ) );
         end
-        ev, etype, isdel = s:getevent();
+        ev, etype, ishup = s:getevent();
     end
 until #s == 0;
 

@@ -34,7 +34,7 @@ local oneshot = false;
 local sec = 2;
 local s = assert( sentry.new() );
 local e = assert( s:timer( sec, nil, oneshot ) );
-local nevt, err, ev, etype, isdel;
+local nevt, err, ev, etype, ishup;
 
 print( 'event type', e:typeof(), sentry.EV_TIMER );
 
@@ -42,7 +42,7 @@ repeat
     print( 'wait #' .. #s );
     nevt = assert( s:wait( waitsec ) );
     print( 'got number of event', nevt );
-    ev, etype, isdel = s:getevent();
+    ev, etype, ishup = s:getevent();
     while ev do
         nrep = nrep + 1;
         assert( e == ev, 'invalid implements' );
@@ -51,7 +51,7 @@ repeat
             print( 'rewatch', assert( ev:watch() ) );
         end
         -- get next event
-        ev, etype, isdel = s:getevent();
+        ev, etype, ishup = s:getevent();
     end
 until #s == 0;
 
