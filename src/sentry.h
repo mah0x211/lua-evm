@@ -220,7 +220,7 @@ enum {
 
 static inline int sev_type( sentry_ev_t *e )
 {
-    switch( e->reg.filter ){
+    switch( sev_filter( e ) ){
         case EVFILT_READ:
             return SENTRY_EV_READABLE;
 

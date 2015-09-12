@@ -59,6 +59,9 @@ typedef struct {
 } sentry_ev_t;
 
 
+#define sev_filter(e)   ((e)->reg.filter)
+
+
 #endif
 
 
