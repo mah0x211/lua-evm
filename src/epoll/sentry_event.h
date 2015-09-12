@@ -40,7 +40,7 @@ static inline int sev_is_oneshot( sentry_ev_t *e )
 
 static inline int sev_is_hup( sentry_ev_t *e )
 {
-    return e->evt.events & (EPOLLRDHUP|EPOLLHUP);
+    return e->evt.events & (EPOLLRDHUP|EPOLLHUP|EPOLLERR);
 }
 
 
@@ -51,12 +51,12 @@ static inline int sentry_wait( sentry_t *s, int timeout )
 }
 
 
-static inline sentry_ev_t *sentry_getev( sentry_t *s, int *isdel )
+static inline sentry_ev_t *sentry_getev( sentry_t *s, int *ishup )
 {
     static uint8_t drain[sizeof( struct signalfd_siginfo )];
     sentry_ev_t *e = NULL;
     kevt_t *evt = NULL;
-    int delflg = 0;
+    int hupflg = 0;
 
 CHECK_NEXT:
     if( s->nevt > 0 )
@@ -68,13 +68,13 @@ CHECK_NEXT:
         }
         
         e->evt = *evt;
-        delflg = sev_is_oneshot( e ) | sev_is_hup( e );
+        hupflg = sev_is_oneshot( e ) | ( *ishup = sev_is_hup( e ) );
         switch( e->filter ){
             // drain data
             case EVFILT_SIGNAL:
                 read( evt->data.fd, drain, sizeof( struct signalfd_siginfo ) );
                 // remove from sigset
-                if( delflg ){
+                if( hupflg ){
                     sigdelset( &e->s->signals, e->ident );
                     goto DELETE_EVENT;
                 }
@@ -85,15 +85,12 @@ CHECK_NEXT:
         }
         
         // remove from kernel event
-        if( delflg ){
+        if( hupflg ){
 DELETE_EVENT:
             epoll_ctl( e->s->fd, EPOLL_CTL_DEL, e->reg.data.fd, NULL );
             fddelset( &e->s->fds, e->reg.data.fd );
         }
     }
-    
-    // set delete flag
-    *isdel = delflg;
     
     return e;
 }

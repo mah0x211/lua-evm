@@ -282,17 +282,17 @@ static int wait_lua( lua_State *L )
 static int getevent_lua( lua_State *L )
 {
     sentry_t *s = luaL_checkudata( L, 1, SENTRY_MT );
-    int isdel = 0;
-    sentry_ev_t *e = sentry_getev( s, &isdel );
+    int ishup = 0;
+    sentry_ev_t *e = sentry_getev( s, &ishup );
     
     // return event, isdel and context
     if( e )
     {
         lstate_pushref( L, e->ref );
         lua_pushinteger( L, sev_type( e ) );
-        lua_pushboolean( L, isdel );
+        lua_pushboolean( L, ishup );
         // release reference if deleted
-        if( isdel ){
+        if( ishup ){
             e->ref = lstate_unref( L, e->ref );
             s->nreg--;
         }

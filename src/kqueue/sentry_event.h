@@ -40,7 +40,7 @@ static inline int sev_is_oneshot( sentry_ev_t *e )
 
 static inline int sev_is_hup( sentry_ev_t *e )
 {
-    return e->evt.flags & EV_EOF;
+    return e->evt.flags & (EV_EOF|EV_ERROR);
 }
 
 
@@ -55,17 +55,17 @@ static inline int sentry_wait( sentry_t *s, int timeout )
 }
 
 
-static inline sentry_ev_t *sentry_getev( sentry_t *s, int *isdel )
+static inline sentry_ev_t *sentry_getev( sentry_t *s, int *ishup )
 {
     sentry_ev_t *e = NULL;
     kevt_t *evt = NULL;
-    int delflg = 0;
+    int hupflg = 0;
     
 CHECK_NEXT:
     if( s->nevt > 0 )
     {
         evt = &s->evs[--s->nevt];
-        delflg = evt->flags & (EV_ONESHOT|EV_EOF);
+        hupflg = evt->flags & (EV_ONESHOT|EV_EOF|EV_ERROR);
         
         switch( evt->filter )
         {
@@ -73,7 +73,7 @@ CHECK_NEXT:
                 if( fdismember( &s->fds, evt->ident, FDSET_READ ) != 1 ){
                     goto CHECK_NEXT;
                 }
-                else if( delflg ){
+                else if( hupflg ){
                     fddelset( &s->fds, evt->ident, FDSET_READ );
                 }
             break;
@@ -81,7 +81,7 @@ CHECK_NEXT:
                 if( fdismember( &s->fds, evt->ident, FDSET_WRITE ) != 1 ){
                     goto CHECK_NEXT;
                 }
-                else if( delflg ){
+                else if( hupflg ){
                     fddelset( &s->fds, evt->ident, FDSET_WRITE );
                 }
             break;
@@ -89,13 +89,19 @@ CHECK_NEXT:
                 if( !sigismember( &s->signals, evt->ident ) ){
                     goto CHECK_NEXT;
                 }
-                else if( delflg ){
+                else if( hupflg ){
                     sigdelset( &s->signals, evt->ident );
                 }
             break;
         }
         
-        if( delflg & EV_EOF ){
+        // check hup flag
+        if( ( *ishup = ( hupflg & (EV_EOF|EV_ERROR) ) ) )
+        {
+            // set errno
+            if( hupflg & EV_ERROR ){
+                errno = evt->data;
+            }
             evt->flags = EV_DELETE;
             kevent( s->fd, evt, 1, NULL, 0, NULL );
         }
@@ -103,9 +109,6 @@ CHECK_NEXT:
         e = (sentry_ev_t*)evt->udata;
         e->evt = *evt;
     }
-    
-    // set delete flag
-    *isdel = delflg;
     
     return e;
 }
