@@ -133,7 +133,7 @@ wait until event occurring.
 
 **Parameters**
 
-- `timeout:int`: wait until specified timeout seconds. `default: 1 second`
+- `timeout:int`: wait until specified timeout seconds. `default: -1(never-timeout)`
 
 
 **Returns**
