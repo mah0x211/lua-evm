@@ -142,7 +142,7 @@ wait until event occurring.
 - `err:string`: error string.
 
 
-### ev, evtype, isdel, ctx = s:getevent()
+### ev, evtype, ishup, ctx = s:getevent()
 
 returns an event object.
 
@@ -151,7 +151,7 @@ returns an event object.
 
 - `ev:userdata`: event object or nil.
 - `evtype:int`: event type.
-- `isdel:boolean`: true on event unregister.
+- `ishup:boolean`: true on hang-up events.
 - `ctx:any`: context object.
 
 
