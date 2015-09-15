@@ -32,7 +32,7 @@ local waitsec = 1;
 local nrep = 0;
 local oneshot = false;
 local sec = 2;
-local s = assert( sentry.new() );
+local s = assert( sentry.default() );
 local e = assert( s:timer( sec, nil, oneshot ) );
 local nevt, err, ev, etype, ishup;
 

@@ -106,7 +106,7 @@ end
 
 local function createServer()
     -- create loop
-    local s = assert( sentry.new() );
+    local s = assert( sentry.default() );
     local clients = {};
     local sfd, sev, ev, nevt, ishup, ctx;
     
