@@ -43,6 +43,15 @@ returns the sentry object.
 **NOTE: bufsize will be automatically resized to larger than specified size if need more buffer allocation.**
 
 
+### s, err = sentry.default( [bufsize:int] );
+
+returns the default sentry object.
+
+
+**Parameters** and **Returns** are same as sentry.new function.
+
+
+
 ## Sentry Methods
 
 
