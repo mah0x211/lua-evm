@@ -27,7 +27,9 @@
 #include "sentry.h"
 #include "sentry_event.h"
 
+static pid_t SENTRY_PID = -1;
 static int DEFAULT_SENTRY = LUA_NOREF;
+
 
 static int writable_new_lua( lua_State *L )
 {
@@ -389,21 +391,9 @@ static int new_lua( lua_State *L )
 // create default sentry
 static int default_lua( lua_State *L )
 {
-    int create_new = 0;
-    
-    // check arguments
-    if( lua_gettop( L ) > 0 )
-    {
-        if( lua_isnoneornil( L, 1 ) ){
-            luaL_checktype( L, 1, LUA_TBOOLEAN );
-            create_new = lua_toboolean( L, 1 );
-        }
-        lua_settop( L, 0 );
-    }
-    
     if( lstate_isref( DEFAULT_SENTRY ) )
     {
-        if( !create_new ){
+        if( SENTRY_PID == getpid() ){
             lstate_pushref( L, DEFAULT_SENTRY );
             return 1;
         }
@@ -414,6 +404,7 @@ static int default_lua( lua_State *L )
     switch( new_lua( L ) ){
         case 1:
             DEFAULT_SENTRY = lstate_refat( L, -1 );
+            SENTRY_PID = getpid();
             return 1;
         
         default:
