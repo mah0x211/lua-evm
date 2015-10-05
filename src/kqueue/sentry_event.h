@@ -55,17 +55,17 @@ static inline int sentry_wait( sentry_t *s, int timeout )
 }
 
 
-static inline sentry_ev_t *sentry_getev( sentry_t *s, int *ishup )
+static inline sentry_ev_t *sentry_getev( sentry_t *s, int *isdel )
 {
     sentry_ev_t *e = NULL;
     kevt_t *evt = NULL;
-    int hupflg = 0;
+    int delflg = 0;
     
 CHECK_NEXT:
     if( s->nevt > 0 )
     {
         evt = &s->evs[--s->nevt];
-        hupflg = evt->flags & (EV_ONESHOT|EV_EOF|EV_ERROR);
+        delflg = evt->flags & (EV_ONESHOT|EV_EOF|EV_ERROR);
 
         switch( evt->filter )
         {
@@ -73,7 +73,7 @@ CHECK_NEXT:
                 if( fdismember( &s->fds, evt->ident, FDSET_READ ) != 1 ){
                     goto CHECK_NEXT;
                 }
-                else if( hupflg ){
+                else if( delflg ){
                     fddelset( &s->fds, evt->ident, FDSET_READ );
                 }
             break;
@@ -81,7 +81,7 @@ CHECK_NEXT:
                 if( fdismember( &s->fds, evt->ident, FDSET_WRITE ) != 1 ){
                     goto CHECK_NEXT;
                 }
-                else if( hupflg ){
+                else if( delflg ){
                     fddelset( &s->fds, evt->ident, FDSET_WRITE );
                 }
             break;
@@ -89,18 +89,18 @@ CHECK_NEXT:
                 if( !sigismember( &s->signals, evt->ident ) ){
                     goto CHECK_NEXT;
                 }
-                else if( hupflg ){
+                else if( delflg ){
                     sigdelset( &s->signals, evt->ident );
                 }
             break;
         }
         
         // remove from kernel event
-        if( hupflg )
+        if( delflg )
         {
-            *ishup = hupflg & (EV_EOF|EV_ERROR);
+            *isdel = delflg;
             // set errno
-            if( hupflg & EV_ERROR ){
+            if( delflg & EV_ERROR ){
                 errno = evt->data;
             }
             evt->flags = EV_DELETE;
