@@ -294,7 +294,7 @@ static int getevent_lua( lua_State *L )
         lua_pushinteger( L, sev_type( e ) );
         lua_pushboolean( L, ishup );
         // release reference if deleted
-        if( ishup ){
+        if( ishup || sev_is_oneshot( e ) ){
             e->ref = lstate_unref( L, e->ref );
             s->nreg--;
         }

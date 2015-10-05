@@ -66,7 +66,7 @@ CHECK_NEXT:
     {
         evt = &s->evs[--s->nevt];
         hupflg = evt->flags & (EV_ONESHOT|EV_EOF|EV_ERROR);
-        
+
         switch( evt->filter )
         {
             case EVFILT_READ:
@@ -95,9 +95,10 @@ CHECK_NEXT:
             break;
         }
         
-        // check hup flag
-        if( ( *ishup = ( hupflg & (EV_EOF|EV_ERROR) ) ) )
+        // remove from kernel event
+        if( hupflg )
         {
+            *ishup = hupflg & (EV_EOF|EV_ERROR);
             // set errno
             if( hupflg & EV_ERROR ){
                 errno = evt->data;
