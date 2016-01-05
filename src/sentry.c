@@ -262,6 +262,7 @@ static int wait_lua( lua_State *L )
         switch( errno ){
             // ignore error
             case ENOENT:
+            case EINTR:
                 s->nevt = 0;
                 errno = 0;
             break;
