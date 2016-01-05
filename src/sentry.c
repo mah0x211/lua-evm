@@ -331,8 +331,9 @@ static int tostring_lua( lua_State *L )
 static int gc_lua( lua_State *L )
 {
     sentry_t *s = lua_touserdata( L, 1 );
-    
-    if( s->fd ){
+
+    // close if not invalid value
+    if( s->fd != -1 ){
         close( s->fd );
     }
     pdealloc( s->evs );
@@ -394,12 +395,23 @@ static int default_lua( lua_State *L )
 {
     if( lstate_isref( DEFAULT_SENTRY ) )
     {
+        lstate_pushref( L, DEFAULT_SENTRY );
+        // return current default sentry
         if( SENTRY_PID == getpid() ){
-            lstate_pushref( L, DEFAULT_SENTRY );
             return 1;
         }
-        
-        DEFAULT_SENTRY = lstate_unref( L, DEFAULT_SENTRY );
+        // create new default sentry
+        else {
+            sentry_t *s = luaL_checkudata( L, 1, SENTRY_MT );
+
+            // should close event descriptor
+            close( s->fd );
+            // invalid value
+            s->fd = -1;
+            // release reference
+            DEFAULT_SENTRY = lstate_unref( L, DEFAULT_SENTRY );
+            lua_pop( L, 1 );
+        }
     }
     
     switch( new_lua( L ) ){
