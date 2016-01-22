@@ -31,7 +31,7 @@
 #include <sys/epoll.h>
 #include <sys/signalfd.h>
 #include <sys/timerfd.h>
-#include "fdset.h"
+
 
 // kernel event-loop fd creator
 #if HAVE_EPOLL_CREATE1
@@ -44,15 +44,7 @@
 // kernel event structure
 typedef struct epoll_event  kevt_t;
 
-typedef struct {
-    int fd;
-    int nbuf;
-    int nreg;
-    int nevt;
-    sigset_t signals;
-    fdset_t fds;
-    kevt_t *evs;
-} sentry_t;
+typedef struct sentry_st sentry_t;
 
 
 enum {

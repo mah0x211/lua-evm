@@ -29,8 +29,6 @@
 #define SENTRY_KEVENT_TYPES_H
 
 #include <sys/event.h>
-#include "fdset.h"
-
 
 // kernel event-loop fd creator
 #define sentry_createfd()   kqueue()
@@ -39,15 +37,7 @@
 // kernel event structure
 typedef struct kevent   kevt_t;
 
-typedef struct {
-    int fd;
-    int nbuf;
-    int nreg;
-    int nevt;
-    sigset_t signals;
-    fdset_t fds;
-    kevt_t *evs;
-} sentry_t;
+typedef struct sentry_st sentry_t;
 
 
 typedef struct {

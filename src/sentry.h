@@ -39,9 +39,21 @@
 // lualib
 #include <lauxlib.h>
 #include <lualib.h>
-
+// sentry headers
 #include "config.h"
+#include "fdset.h"
 #include "sentry_types.h"
+
+
+struct sentry_st {
+    int fd;
+    int nbuf;
+    int nreg;
+    int nevt;
+    sigset_t signals;
+    fdset_t fds;
+    kevt_t *evs;
+};
 
 
 // memory alloc/dealloc
