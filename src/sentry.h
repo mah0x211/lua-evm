@@ -40,8 +40,8 @@
 #include <lualib.h>
 // sentry headers
 #include "config.h"
-#include "fdset.h"
 #include "sentry_types.h"
+#include "fdset.h"
 
 
 struct sentry_st {
