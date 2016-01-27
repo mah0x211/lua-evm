@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2015 Masatoshi Teruya
+ *  Copyright (C) 2016 Masatoshi Teruya
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a
  *  copy of this software and associated documentation files (the "Software"), 
@@ -19,38 +19,22 @@
  *  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
  *  DEALINGS IN THE SOFTWARE.
  *
- *  kqueue/sentry_types.h
+ *  kqueue/common.c
  *  lua-sentry
- *  Created by Masatoshi Teruya on 15/08/24.
+ *  Created by Masatoshi Teruya on 2016/01/27.
+ *
  */
 
-#ifndef SENTRY_KEVENT_TYPES_H
-#define SENTRY_KEVENT_TYPES_H
-
-#include <sys/event.h>
-
-// kernel event-loop fd creator
-#define sentry_createfd()   kqueue()
+#include "sentry_event.h"
 
 
-// kernel event structure
-typedef struct kevent   kevt_t;
-
-typedef struct sentry_st sentry_t;
-
-
-typedef struct {
-    sentry_t *s;
-    kevt_t reg;
-    kevt_t evt;
-    int ref;
-    int ctx;
-} sentry_ev_t;
-
-
-#define sev_filter(e)   ((e)->reg.filter)
-
-
-#endif
-
+int sev_gc_lua( lua_State *L )
+{
+    sentry_ev_t *e = lua_touserdata( L, 1 );
+    
+    // release context
+    lstate_unref( L, e->ctx );
+    
+    return 0;
+}
 

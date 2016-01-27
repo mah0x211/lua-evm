@@ -29,7 +29,7 @@
 #define SENTRY_EPOLL_EVENT_H
 
 
-#include "sentry_types.h"
+#include "sentry.h"
 
 
 static inline int sentry_wait( sentry_t *s, int timeout )
@@ -56,7 +56,8 @@ CHECK_NEXT:
         }
         
         e->evt = *evt;
-        delflg = sev_is_oneshot( e ) | sev_is_hup( e );
+        delflg = (e->reg.events & EPOLLONESHOT) |
+                 (e->evt.events & (EPOLLRDHUP|EPOLLHUP|EPOLLERR));
         switch( e->filter ){
             // drain data
             case EVFILT_SIGNAL:
@@ -102,20 +103,10 @@ static inline int sentry_register( sentry_t *s, sentry_ev_t *e )
 
 // MARK: API for sentry_ev_t
 
-static inline int sev_is_oneshot( sentry_ev_t *e )
-{
-    return e->reg.events & EPOLLONESHOT;
-}
-
-
-static inline int sev_is_hup( sentry_ev_t *e )
-{
-    return e->evt.events & (EPOLLRDHUP|EPOLLHUP|EPOLLERR);
-}
-
 
 static inline int sev_fd_new( lua_State *L, sentry_t *s, int ctx, int fd,
-                              int oneshot, int edge, int filter )
+                              int oneshot, int edge, int filter,
+                              const char *mt )
 {
     sentry_ev_t *sibling = fdismember( &s->fds, fd );
     kevt_t evt = {
@@ -153,7 +144,7 @@ static inline int sev_fd_new( lua_State *L, sentry_t *s, int ctx, int fd,
         
         if( sentry_register( s, e ) == 0 ){
             // set metatable
-            lstate_setmetatable( L, SENTRY_EVENT_MT );
+            lstate_setmetatable( L, mt );
             e->ref = lstate_refat( L, -1 );
             return 0;
         }
@@ -169,10 +160,10 @@ static inline int sev_fd_new( lua_State *L, sentry_t *s, int ctx, int fd,
 }
 
 #define sev_readable_new( L, s, ctx, fd, oneshot, edge ) \
-    sev_fd_new( L, s, ctx, fd, oneshot, edge, EVFILT_READ )
+    sev_fd_new( L, s, ctx, fd, oneshot, edge, EVFILT_READ, SENTRY_READABLE_MT )
 
 #define sev_writable_new( L, s, ctx, fd, oneshot, edge ) \
-    sev_fd_new( L, s, ctx, fd, oneshot, edge, EVFILT_WRITE )
+    sev_fd_new( L, s, ctx, fd, oneshot, edge, EVFILT_WRITE, SENTRY_WRITABLE_MT )
 
 
 static inline int sev_signal_new( lua_State *L, sentry_t *s, int ctx, int signo,
@@ -206,7 +197,7 @@ static inline int sev_signal_new( lua_State *L, sentry_t *s, int ctx, int signo,
         if( sentry_register( s, e ) == 0 ){
             sigaddset( &s->signals, signo );
             // set metatable
-            lstate_setmetatable( L, SENTRY_EVENT_MT );
+            lstate_setmetatable( L, SENTRY_SIGNAL_MT );
             e->ref = lstate_refat( L, -1 );
             return 0;
         }
@@ -247,7 +238,7 @@ static inline int sev_timer_new( lua_State *L, sentry_t *s, int ctx,
         if( timerfd_settime( fd, 0, &its, NULL ) == 0 &&
             sentry_register( s, e ) == 0 ){
             // set metatable
-            lstate_setmetatable( L, SENTRY_EVENT_MT );
+            lstate_setmetatable( L, SENTRY_TIMER_MT );
             e->ref = lstate_refat( L, -1 );
             return 0;
         }
@@ -259,6 +250,112 @@ static inline int sev_timer_new( lua_State *L, sentry_t *s, int ctx,
     
     return -1;
 }
+
+
+static inline int sev_is_oneshot( sentry_ev_t *e )
+{
+    return e->reg.events & EPOLLONESHOT;
+}
+
+
+static inline int sev_is_hup( sentry_ev_t *e )
+{
+    return e->evt.events & (EPOLLRDHUP|EPOLLHUP|EPOLLERR);
+}
+
+
+static inline int sev_ident_lua( lua_State *L, const char *mt )
+{
+    sentry_ev_t *e = luaL_checkudata( L, 1, mt );
+
+    lua_pushinteger( L, e->ident );
+
+    return 1;
+}
+
+
+static inline int sev_typeof_lua( lua_State *L, const char *mt )
+{
+    sentry_ev_t *e = luaL_checkudata( L, 1, mt );
+
+    lua_pushinteger( L, sev_type( e ) );
+    
+    return 1;
+}
+
+
+static inline int sev_context_lua( lua_State *L, const char *mt )
+{
+    sentry_ev_t *e = luaL_checkudata( L, 1, mt );
+
+    if( lstate_isref( e->ctx ) ){
+        lstate_pushref( L, e->ctx );
+        return 1;
+    }
+    
+    return 0;
+}
+
+
+static inline int sev_watch_lua( lua_State *L, const char *mt,
+                                 sentry_ev_t **ev )
+{
+    sentry_ev_t *e = luaL_checkudata( L, 1, mt );
+    
+    if( !lstate_isref( e->ref ) )
+    {
+        // register event
+        if( sentry_register( e->s, e ) != 0 ){
+            // got error
+            lua_pushboolean( L, 0 );
+            lua_pushstring( L, strerror( errno ) );
+            return 2;
+        }
+        
+        // retain event
+        e->ref = lstate_ref( L );
+        if( ev ){
+            *ev = e;
+        }
+    }
+    
+    lua_pushboolean( L, 1 );
+    
+    return 1;
+}
+
+
+static inline int sev_unwatch_lua( lua_State *L, const char *mt,
+                                   sentry_ev_t **ev )
+{
+    sentry_ev_t *e = luaL_checkudata( L, 1, mt );
+    
+    if( lstate_isref( e->ref ) ){
+        struct epoll_event evt = e->reg;
+
+        // del fd from fdset
+        fddelset( &e->s->fds, e->reg.data.fd );
+        // unregister event
+        epoll_ctl( e->s->fd, EPOLL_CTL_DEL, e->reg.data.fd, &evt );
+        e->s->nreg--;
+        e->ref = lstate_unref( L, e->ref );
+        if( ev ){
+            *ev = e;
+        }
+    }
+
+    lua_pushboolean( L, 1 );
+    
+    return 1;
+}
+
+
+// implemented at epoll/common.c
+
+int sev_gc_lua( lua_State *L );
+
+// gc for readable/writable event
+int sev_rwgc_lua( lua_State *L );
 
 
 #endif

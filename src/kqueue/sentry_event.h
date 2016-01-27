@@ -28,7 +28,7 @@
 #define SENTRY_KEVENT_EVENT_H
 
 
-#include "sentry_types.h"
+#include "sentry.h"
 
 
 static inline int sentry_wait( sentry_t *s, int timeout )
@@ -114,21 +114,11 @@ static inline int sentry_register( sentry_t *s, sentry_ev_t *e )
     return -1;
 }
 
+
 // MARK: API for sentry_ev_t
 
-static inline int sev_is_oneshot( sentry_ev_t *e )
-{
-    return e->reg.flags & EV_ONESHOT;
-}
 
-
-static inline int sev_is_hup( sentry_ev_t *e )
-{
-    return e->evt.flags & (EV_EOF|EV_ERROR);
-}
-
-
-#define sev_fd_new( L, s, ctx, fd, type, oneshot, edge ) do { \
+#define sev_fd_new( L, s, ctx, fd, type, oneshot, edge, mt ) do { \
     /* already watched */ \
     if( fdismember( &s->fds, fd, FDSET_##type ) == 1 ){ \
         errno = EALREADY; \
@@ -139,7 +129,7 @@ static inline int sev_is_hup( sentry_ev_t *e )
         sentry_ev_t *e = lua_newuserdata( L, sizeof( sentry_ev_t ) ); \
         if( e ){ \
             /* set metatable */ \
-            lstate_setmetatable( L, SENTRY_EVENT_MT ); \
+            lstate_setmetatable( L, mt ); \
             e->s = s; \
             e->ctx = ctx; \
             EV_SET( \
@@ -167,13 +157,13 @@ static inline int sev_is_hup( sentry_ev_t *e )
 static inline int sev_writable_new( lua_State *L, sentry_t *s, int ctx, int fd,
                                     int oneshot, int edge )
 {
-    sev_fd_new( L, s, ctx, fd, WRITE, oneshot, edge );
+    sev_fd_new( L, s, ctx, fd, WRITE, oneshot, edge, SENTRY_WRITABLE_MT );
 }
 
 static inline int sev_readable_new( lua_State *L, sentry_t *s, int ctx, int fd,
                                     int oneshot, int edge )
 {
-    sev_fd_new( L, s, ctx, fd, READ, oneshot, edge );
+    sev_fd_new( L, s, ctx, fd, READ, oneshot, edge, SENTRY_READABLE_MT );
 }
 
 
@@ -190,7 +180,7 @@ static inline int sev_signal_new( lua_State *L, sentry_t *s, int ctx, int signo,
     else if( ( e = lua_newuserdata( L, sizeof( sentry_ev_t ) ) ) )
     {
         // set metatable
-        lstate_setmetatable( L, SENTRY_EVENT_MT );
+        lstate_setmetatable( L, SENTRY_SIGNAL_MT );
         e->s = s;
         e->ctx = ctx;
         // set event fields
@@ -225,7 +215,7 @@ static inline int sev_timer_new( lua_State *L, sentry_t *s, int ctx,
     if( e )
     {
         // set metatable
-        lstate_setmetatable( L, SENTRY_EVENT_MT );
+        lstate_setmetatable( L, SENTRY_TIMER_MT );
         e->s = s;
         e->ctx = ctx;
         // set event fields
@@ -249,5 +239,105 @@ static inline int sev_timer_new( lua_State *L, sentry_t *s, int ctx,
     return -1;
 }
 
+
+static inline int sev_is_oneshot( sentry_ev_t *e )
+{
+    return e->reg.flags & EV_ONESHOT;
+}
+
+
+static inline int sev_is_hup( sentry_ev_t *e )
+{
+    return e->evt.flags & (EV_EOF|EV_ERROR);
+}
+
+
+static inline int sev_ident_lua( lua_State *L, const char *mt )
+{
+    sentry_ev_t *e = luaL_checkudata( L, 1, mt );
+
+    lua_pushinteger( L, e->reg.ident );
+
+    return 1;
+}
+
+
+static inline int sev_typeof_lua( lua_State *L, const char *mt )
+{
+    sentry_ev_t *e = luaL_checkudata( L, 1, mt );
+
+    lua_pushinteger( L, sev_type( e ) );
+    
+    return 1;
+}
+
+
+static inline int sev_context_lua( lua_State *L, const char *mt )
+{
+    sentry_ev_t *e = luaL_checkudata( L, 1, mt );
+
+    if( lstate_isref( e->ctx ) ){
+        lstate_pushref( L, e->ctx );
+        return 1;
+    }
+    
+    return 0;
+}
+
+
+static inline int sev_watch_lua( lua_State *L, const char *mt,
+                                 sentry_ev_t **ev )
+{
+    sentry_ev_t *e = luaL_checkudata( (L), 1, (mt) );
+
+    if( !lstate_isref( e->ref ) )
+    {
+        // register event
+        if( sentry_register( e->s, e ) != 0 ){
+            // got error
+            lua_pushboolean( (L), 0 );
+            lua_pushstring( (L), strerror( errno ) );
+            return 2;
+        }
+        // retain event
+        e->ref = lstate_ref( L );
+        if( ev ){
+            *ev = e;
+        }
+    }
+
+    lua_pushboolean( L, 1 );
+
+    return 1;
+}
+
+
+static inline int sev_unwatch_lua( lua_State *L, const char *mt,
+                                   sentry_ev_t **ev )
+{
+    sentry_ev_t *e = luaL_checkudata( L, 1, mt );
+    
+    if( lstate_isref( e->ref ) )
+    {
+        struct kevent evt = e->reg;
+
+        // unregister event
+        evt.flags = EV_DELETE;
+        kevent( e->s->fd, &evt, 1, NULL, 0, NULL );
+        e->s->nreg--;
+        e->ref = lstate_unref( L, e->ref );
+        if( ev ){
+            *ev = e;
+        }
+    }
+
+    lua_pushboolean( L, 1 );
+
+    return 1;
+}
+
+
+// implemented at kqueue/common.c
+int sev_gc_lua( lua_State *L );
 
 #endif

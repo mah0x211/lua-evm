@@ -24,7 +24,7 @@
  *  Created by Masatoshi Teruya on 15/08/24.
  */
 
-#include "sentry.h"
+
 #include "sentry_event.h"
 
 static pid_t SENTRY_PID = -1;
@@ -444,9 +444,12 @@ LUALIB_API int luaopen_sentry( lua_State *L )
         { NULL, NULL }
     };
     
-    // register event-metatable
-    luaopen_sentry_event( L );
-    
+    // register event metatables
+    luaopen_sentry_readable( L );
+    luaopen_sentry_writable( L );
+    luaopen_sentry_timer( L );
+    luaopen_sentry_signal( L );
+
     // register sentry-metatable
     sentry_define_mt( L, SENTRY_MT, mmethod, method );
     // create table

@@ -19,13 +19,14 @@
  *  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
  *  DEALINGS IN THE SOFTWARE.
  *
- *  sentry_types.h
+ *  epoll/sentry_types.h
  *  lua-sentry
  *  Created by Masatoshi Teruya on 15/08/24.
  */
 
 #ifndef SENTRY_LUA_TYPES_H
 #define SENTRY_LUA_TYPES_H
+
 
 #include <sys/epoll.h>
 #include <sys/signalfd.h>
