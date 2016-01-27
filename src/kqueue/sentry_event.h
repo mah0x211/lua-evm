@@ -31,18 +31,6 @@
 #include "sentry_types.h"
 
 
-static inline int sev_is_oneshot( sentry_ev_t *e )
-{
-    return e->reg.flags & EV_ONESHOT;
-}
-
-
-static inline int sev_is_hup( sentry_ev_t *e )
-{
-    return e->evt.flags & (EV_EOF|EV_ERROR);
-}
-
-
 static inline int sentry_wait( sentry_t *s, int timeout )
 {
     struct timespec ts = {
@@ -124,6 +112,19 @@ static inline int sentry_register( sentry_t *s, sentry_ev_t *e )
     }
     
     return -1;
+}
+
+// MARK: API for sentry_ev_t
+
+static inline int sev_is_oneshot( sentry_ev_t *e )
+{
+    return e->reg.flags & EV_ONESHOT;
+}
+
+
+static inline int sev_is_hup( sentry_ev_t *e )
+{
+    return e->evt.flags & (EV_EOF|EV_ERROR);
 }
 
 
