@@ -91,7 +91,10 @@ CHECK_NEXT:
                 errno = evt->data;
             }
             evt->flags = EV_DELETE;
-            kevent( s->fd, evt, 1, NULL, 0, NULL );
+            // unregister if not oneshot evevent
+            if( !( delflg & EV_ONESHOT ) ){
+                kevent( s->fd, evt, 1, NULL, 0, NULL );
+            }
         }
         
         e = (sentry_ev_t*)evt->udata;
