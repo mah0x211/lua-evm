@@ -136,6 +136,7 @@ struct sentry_st {
 
 // define module names
 #define SENTRY_MT           "sentry"
+#define SENTRY_EVENT_MT     "sentry.event"
 #define SENTRY_READABLE_MT  "sentry.readable"
 #define SENTRY_WRITABLE_MT  "sentry.writable"
 #define SENTRY_TIMER_MT     "sentry.timer"
@@ -144,6 +145,7 @@ struct sentry_st {
 
 // define prototypes
 LUALIB_API int luaopen_sentry( lua_State *L );
+LUALIB_API int luaopen_sentry_event( lua_State *L );
 LUALIB_API int luaopen_sentry_readable( lua_State *L );
 LUALIB_API int luaopen_sentry_writable( lua_State *L );
 LUALIB_API int luaopen_sentry_timer( lua_State *L );

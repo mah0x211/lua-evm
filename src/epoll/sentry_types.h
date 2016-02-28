@@ -67,7 +67,6 @@ typedef struct {
 
 #define sev_filter(e)   ((e)->filter)
 
-
 #endif
 
 

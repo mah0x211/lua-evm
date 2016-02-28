@@ -91,7 +91,7 @@ CHECK_NEXT:
                 errno = evt->data;
             }
             evt->flags = EV_DELETE;
-            // unregister if not oneshot evevent
+            // unregister if not oneshot event
             if( !( delflg & EV_ONESHOT ) ){
                 kevent( s->fd, evt, 1, NULL, 0, NULL );
             }
@@ -105,12 +105,12 @@ CHECK_NEXT:
 }
 
 
-static inline int sentry_register( sentry_t *s, sentry_ev_t *e )
+static inline int sentry_register( sentry_ev_t *e )
 {
     // increase event-buffer and set event
-    if( sentry_increase_evs( s, 1 ) == 0 &&
-        kevent( s->fd, &e->reg, 1, NULL, 0, NULL ) == 0 ){
-        s->nreg++;
+    if( sentry_increase_evs( e->s, 1 ) == 0 &&
+        kevent( e->s->fd, &e->reg, 1, NULL, 0, NULL ) == 0 ){
+        e->s->nreg++;
         return 0;
     }
     
@@ -121,125 +121,86 @@ static inline int sentry_register( sentry_t *s, sentry_ev_t *e )
 // MARK: API for sentry_ev_t
 
 
-#define sev_fd_new( L, s, ctx, fd, type, oneshot, edge, mt ) do { \
+#define sev_fd_new( e, fd, type, oneshot, edge ) do { \
     /* already watched */ \
-    if( fdismember( &s->fds, fd, FDSET_##type ) == 1 ){ \
+    if( fdismember( &(e)->s->fds, (fd), FDSET_##type ) == 1 ){ \
         errno = EALREADY; \
     } \
-    else if( fdset_realloc( &s->fds, fd ) == 0 && \
-             fdaddset( &s->fds, fd, FDSET_##type ) == 0 ){ \
-        /* create event */ \
-        sentry_ev_t *e = lua_newuserdata( L, sizeof( sentry_ev_t ) ); \
-        if( e ){ \
-            /* set metatable */ \
-            lstate_setmetatable( L, mt ); \
-            e->s = s; \
-            e->ctx = ctx; \
-            EV_SET( \
-                &e->reg, \
-                (uintptr_t)fd, \
-                EVFILT_##type, \
-                EV_ADD|( oneshot ? EV_ONESHOT : 0 )|( edge ? EV_CLEAR : 0 ), \
-                0, \
-                0, \
-                (void*)e \
-            ); \
-            if( sentry_register( s, e ) == 0 ){ \
-                e->ref = lstate_refat( L, -1 ); \
-                return 0; \
-            } \
-            /* remove event */ \
-            lua_pop( L, 1 ); \
+    else if( fdset_realloc( &e->s->fds, fd ) == 0 && \
+             fdaddset( &(e)->s->fds, (fd), FDSET_##type ) == 0 ){ \
+        EV_SET( \
+            &(e)->reg, \
+            (uintptr_t)(fd), \
+            EVFILT_##type, \
+            EV_ADD|( (oneshot) ? EV_ONESHOT : 0 )|( (edge) ? EV_CLEAR : 0 ), \
+            0, \
+            0, \
+            (void*)(e) \
+        ); \
+        if( sentry_register( e ) == 0 ){ \
+            return 0; \
         } \
-        fddelset( &s->fds, fd, FDSET_##type ); \
+        fddelset( &(e)->s->fds, (fd), FDSET_##type ); \
     } \
     return -1; \
 }while(0)
 
 
-static inline int sev_writable_new( lua_State *L, sentry_t *s, int ctx, int fd,
-                                    int oneshot, int edge )
+static inline int sev_writable_new( sentry_ev_t *e, int fd, int oneshot,
+                                    int edge )
 {
-    sev_fd_new( L, s, ctx, fd, WRITE, oneshot, edge, SENTRY_WRITABLE_MT );
+    sev_fd_new( e, fd, WRITE, oneshot, edge );
 }
 
-static inline int sev_readable_new( lua_State *L, sentry_t *s, int ctx, int fd,
-                                    int oneshot, int edge )
+static inline int sev_readable_new( sentry_ev_t *e, int fd, int oneshot,
+                                    int edge )
 {
-    sev_fd_new( L, s, ctx, fd, READ, oneshot, edge, SENTRY_READABLE_MT );
+    sev_fd_new( e, fd, READ, oneshot, edge );
 }
 
 
-static inline int sev_signal_new( lua_State *L, sentry_t *s, int ctx, int signo,
-                                  int oneshot )
+static inline int sev_signal_new( sentry_ev_t *e, int signo, int oneshot )
 {
-    sentry_ev_t *e = NULL;
-    
     // already watched
-    if( sigismember( &s->signals, signo ) ){
+    if( sigismember( &e->s->signals, signo ) ){
         errno = EALREADY;
+        return -1;
     }
-    // create event
-    else if( ( e = lua_newuserdata( L, sizeof( sentry_ev_t ) ) ) )
-    {
-        // set metatable
-        lstate_setmetatable( L, SENTRY_SIGNAL_MT );
-        e->s = s;
-        e->ctx = ctx;
-        // set event fields
-        EV_SET(
-            &e->reg,
-            (uintptr_t)signo,
-            EVFILT_SIGNAL,
-            EV_ADD|( oneshot ? EV_ONESHOT : 0 ),
-            0,
-            0,
-            (void*)e
-        );
-        if( sentry_register( s, e ) == 0 ){
-            sigaddset( &s->signals, signo );
-            e->ref = lstate_refat( L, -1 );
-            return 0;
-        }
-        // remove event
-        lua_pop( L, 1 );
+
+    // set event fields
+    EV_SET(
+        &e->reg,
+        (uintptr_t)signo,
+        EVFILT_SIGNAL,
+        EV_ADD|( oneshot ? EV_ONESHOT : 0 ),
+        0,
+        0,
+        (void*)e
+    );
+
+    if( sentry_register( e ) == 0 ){
+        sigaddset( &e->s->signals, signo );
+        return 0;
     }
-    
+
     return -1;
 }
 
 
-static inline int sev_timer_new( lua_State *L, sentry_t *s, int ctx,
-                                 double timeout, int oneshot )
+static inline int sev_timer_new( sentry_ev_t *e, double timeout, int oneshot )
 {
-    // create event
-    sentry_ev_t *e = lua_newuserdata( L, sizeof( sentry_ev_t ) );
+    // set event fields
+    EV_SET(
+        &e->reg,
+        (uintptr_t)e,
+        EVFILT_TIMER,
+        EV_ADD|( oneshot ? EV_ONESHOT : 0 ),
+        NOTE_NSECONDS,
+        (intptr_t)(timeout * 1000000000.0),
+        (void*)e
+    );
 
-    if( e )
-    {
-        // set metatable
-        lstate_setmetatable( L, SENTRY_TIMER_MT );
-        e->s = s;
-        e->ctx = ctx;
-        // set event fields
-        EV_SET(
-            &e->reg,
-            (uintptr_t)e,
-            EVFILT_TIMER,
-            EV_ADD|( oneshot ? EV_ONESHOT : 0 ),
-            NOTE_NSECONDS,
-            (intptr_t)(timeout * 1000000000.0),
-            (void*)e
-        );
-        if( sentry_register( s, e ) == 0 ){
-            e->ref = lstate_refat( L, -1 );
-            return 0;
-        }
-        // remove event
-        lua_pop( L, 1 );
-    }
-
-    return -1;
+    return sentry_register( e );
 }
 
 
@@ -296,7 +257,7 @@ static inline int sev_watch_lua( lua_State *L, const char *mt,
     if( !lstate_isref( e->ref ) )
     {
         // register event
-        if( sentry_register( e->s, e ) != 0 ){
+        if( sentry_register( e ) != 0 ){
             // got error
             lua_pushboolean( (L), 0 );
             lua_pushstring( (L), strerror( errno ) );
@@ -335,6 +296,16 @@ static inline int sev_unwatch_lua( lua_State *L, const char *mt,
     }
 
     lua_pushboolean( L, 1 );
+
+    return 1;
+}
+
+
+static inline int sev_revert_lua( lua_State *L )
+{
+    lua_settop( L, 1 );
+    // set event metatable
+    lstate_setmetatable( L, SENTRY_EVENT_MT );
 
     return 1;
 }

@@ -31,215 +31,10 @@ static pid_t SENTRY_PID = -1;
 static int DEFAULT_SENTRY = LUA_NOREF;
 
 
-static int writable_new_lua( lua_State *L )
-{
-    int argc = lua_gettop( L );
-    sentry_t *s = luaL_checkudata( L, 1, SENTRY_MT );
-    int fd = (int)luaL_checkinteger( L, 2 );
-    int ctx = LUA_NOREF;
-    int oneshot = 0;
-    int edge = 0;
-    
-    // check arguments
-    if( argc > 5 ){
-        argc = 5;
-    }
-    switch( argc ){
-        // arg#5 edge-trigger (default level-trigger)
-        case 5:
-            if( !lua_isnoneornil( L, 5 ) ){
-                luaL_checktype( L, 5, LUA_TBOOLEAN );
-                edge = lua_toboolean( L, 5 );
-            }
-        case 4:
-            // arg#4 oneshot
-            if( !lua_isnoneornil( L, 4 ) ){
-                luaL_checktype( L, 4, LUA_TBOOLEAN );
-                oneshot = lua_toboolean( L, 4 );
-            }
-        case 3:
-            // arg#3 context
-            if( !lua_isnoneornil( L, 3 ) ){
-                ctx = sentry_retain_context( L, 3 );
-            }
-        case 2:
-            // arg#2 descriptor
-            if( fd < 0 || fd > INT_MAX ){
-                return luaL_argerror( L, 2, "fd value range must be 0 to "
-                                      MSTRCAT(INT_MAX) );
-            }
-        break;
-    }
-    
-    // set out-event
-    if( sev_writable_new( L, s, ctx, fd, oneshot, edge ) == 0 ){
-        return 1;
-    }
-    
-    // got error
-    lstate_unref( L, ctx );
-    lua_pushnil( L );
-    lua_pushstring( L, strerror( errno ) );
-
-    return 2;
-}
-
-
-static int readable_new_lua( lua_State *L )
-{
-    int argc = lua_gettop( L );
-    sentry_t *s = luaL_checkudata( L, 1, SENTRY_MT );
-    int fd = (int)luaL_checkinteger( L, 2 );
-    int ctx = LUA_NOREF;
-    int oneshot = 0;
-    int edge = 0;
-    
-    // check arguments
-    if( argc > 5 ){
-        argc = 5;
-    }
-    switch( argc ){
-        // arg#5 edge-trigger (default level-trigger)
-        case 5:
-            if( !lua_isnoneornil( L, 5 ) ){
-                luaL_checktype( L, 5, LUA_TBOOLEAN );
-                edge = lua_toboolean( L, 5 );
-            }
-        case 4:
-            // arg#4 oneshot
-            if( !lua_isnoneornil( L, 4 ) ){
-                luaL_checktype( L, 4, LUA_TBOOLEAN );
-                oneshot = lua_toboolean( L, 4 );
-            }
-        case 3:
-            // arg#3 context
-            if( !lua_isnoneornil( L, 3 ) ){
-                ctx = sentry_retain_context( L, 3 );
-            }
-        case 2:
-            // arg#2 descriptor
-            if( fd < 0 || fd > INT_MAX ){
-                return luaL_argerror( L, 2, "fd value range must be 0 to "
-                                      MSTRCAT(INT_MAX) );
-            }
-        break;
-    }
-
-    // set fd event
-    if( sev_readable_new( L, s, ctx, fd, oneshot, edge ) == 0 ){
-        return 1;
-    }
-    
-    // got error
-    lstate_unref( L, ctx );
-    lua_pushnil( L );
-    lua_pushstring( L, strerror( errno ) );
-
-    return 2;
-}
-
-
-static int signal_new_lua( lua_State *L )
-{
-    int argc = lua_gettop( L );
-    sentry_t *s = luaL_checkudata( L, 1, SENTRY_MT );
-    int signo = (int)luaL_checkinteger( L, 2 );
-    int ctx = LUA_NOREF;
-    int oneshot = 0;
-    sigset_t ss;
-    
-    // check arguments
-    if( argc > 4 ){
-        argc = 4;
-    }
-    
-    sigemptyset( &ss );
-    
-    switch( argc ){
-        case 4:
-            // arg#4 oneshot
-            if( !lua_isnoneornil( L, 4 ) ){
-                luaL_checktype( L, 4, LUA_TBOOLEAN );
-                oneshot = lua_toboolean( L, 4 );
-            }
-        case 3:
-            // arg#3 context
-            if( !lua_isnoneornil( L, 3 ) ){
-                ctx = sentry_retain_context( L, 3 );
-            }
-        case 2:
-            // arg#2 signo
-            if( sigaddset( &ss, signo ) != 0 ){
-                return luaL_argerror( L, 2, "invalid signal number" );
-            }
-        break;
-    }
-
-    // set signal-event
-    if( sev_signal_new( L, s, ctx, signo, oneshot ) == 0 ){
-        return 1;
-    }
-    
-    // got error
-    lstate_unref( L, ctx );
-    lua_pushnil( L );
-    lua_pushstring( L, strerror( errno ) );
-
-    return 2;
-}
-
-
-
-static int timer_new_lua( lua_State *L )
-{
-    int argc = lua_gettop( L );
-    sentry_t *s = luaL_checkudata( L, 1, SENTRY_MT );
-    double timeout = luaL_checknumber( L, 2 );
-    int ctx = LUA_NOREF;
-    int oneshot = 0;
-    
-    // check arguments
-    if( argc > 4 ){
-        argc = 4;
-    }
-    switch( argc ){
-        case 4:
-            // arg#4 oneshot
-            if( !lua_isnoneornil( L, 4 ) ){
-                luaL_checktype( L, 4, LUA_TBOOLEAN );
-                oneshot = lua_toboolean( L, 4 );
-            }
-        case 3:
-            // arg#3 context
-            if( !lua_isnoneornil( L, 3 ) ){
-                ctx = sentry_retain_context( L, 3 );
-            }
-        case 2:
-            // arg#2 timeout
-            if( timeout <= 0 ){
-                return luaL_argerror( L, 2, "timeout must be larger than 0 sec" );
-            }
-        break;
-    }
-    
-    // create timer-event
-    if( sev_timer_new( L, s, ctx, timeout, oneshot ) == 0 ){
-        return 1;
-    }
-    
-    // got error
-    lstate_unref( L, ctx );
-    lua_pushnil( L );
-    lua_pushstring( L, strerror( errno ) );
-
-    return 2;
-}
-
-
 static int wait_lua( lua_State *L )
 {
     sentry_t *s = luaL_checkudata( L, 1, SENTRY_MT );
-    // defaout timeout: 1 sec
+    // default timeout: 1 sec
     int timeout = (int)luaL_optinteger( L, 2, -1 );
     sentry_ev_t *e = NULL;
     int isdel = 0;
@@ -309,6 +104,30 @@ static int getevent_lua( lua_State *L )
     }
     
     return 0;
+}
+
+
+static inline int newevent_lua( lua_State *L )
+{
+    sentry_t *s = luaL_checkudata( L, 1, SENTRY_MT );
+    sentry_ev_t *e = lua_newuserdata( L, sizeof( sentry_ev_t ) );
+
+    if( e ){
+        // clear
+        memset( (void*)e, 0, sizeof( sentry_ev_t ) );
+        e->s = s;
+        e->ctx = LUA_NOREF;
+        e->ref = LUA_NOREF;
+        // set metatable
+        lstate_setmetatable( L, SENTRY_EVENT_MT );
+        return 1;
+    }
+
+    // got error
+    lua_pushnil( L );
+    lua_pushstring( L, strerror( errno ) );
+
+    return 2;
 }
 
 
@@ -435,16 +254,14 @@ LUALIB_API int luaopen_sentry( lua_State *L )
         { NULL, NULL }
     };
     struct luaL_Reg method[] = {
+        { "newevent", newevent_lua },
         { "getevent", getevent_lua },
         { "wait", wait_lua },
-        { "timer", timer_new_lua },
-        { "signal", signal_new_lua },
-        { "readable", readable_new_lua },
-        { "writable", writable_new_lua },
         { NULL, NULL }
     };
     
     // register event metatables
+    luaopen_sentry_event( L );
     luaopen_sentry_readable( L );
     luaopen_sentry_writable( L );
     luaopen_sentry_timer( L );
@@ -457,6 +274,7 @@ LUALIB_API int luaopen_sentry( lua_State *L )
     lstate_fn2tbl( L, "new", new_lua );
     lstate_fn2tbl( L, "default", default_lua );
     // add event type
+    lstate_num2tbl( L, "EV_NONE", -1 );
     lstate_num2tbl( L, "EV_READABLE", SENTRY_EV_READABLE );
     lstate_num2tbl( L, "EV_WRITABLE", SENTRY_EV_WRITABLE );
     lstate_num2tbl( L, "EV_TIMER", SENTRY_EV_TIMER );

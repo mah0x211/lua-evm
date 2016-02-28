@@ -74,6 +74,14 @@ static int ident_lua( lua_State *L )
 }
 
 
+static int revert_lua( lua_State *L )
+{
+    unwatch_lua( L );
+    sev_gc_lua( L );
+    return sev_revert_lua( L );
+}
+
+
 static int tostring_lua( lua_State *L )
 {
     return TOSTRING_MT( L, SENTRY_SIGNAL_MT );
@@ -88,6 +96,7 @@ LUALIB_API int luaopen_sentry_signal( lua_State *L )
         { NULL, NULL }
     };
     struct luaL_Reg method[] = {
+        { "revert", revert_lua },
         { "ident", ident_lua },
         { "typeof", typeof_lua },
         { "context", context_lua },
