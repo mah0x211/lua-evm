@@ -54,7 +54,7 @@ returns the default sentry object.
 ## Sentry Methods
 
 
-### s, err = s:newevent();
+### ev, err = s:newevent();
 
 returns the new [empty event object](#empty-event-object-methods).
 
