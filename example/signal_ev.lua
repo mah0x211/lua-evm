@@ -34,8 +34,13 @@ local waitsec = 2;
 local nrep = 0;
 local oneshot = false;
 local s = assert( sentry.default() );
-local e = assert( s:signal( signal.SIGINT, nil, oneshot ) );
-local nevt, err, ev, etype, ishup;
+local e = assert( s:newevent() );
+local err = e:assignal( signal.SIGINT, nil, oneshot );
+local nevt, ev, etype, ishup;
+
+if err then
+    error( err );
+end
 
 -- block SIGINT
 assert( signal.block( signal.SIGINT ) );

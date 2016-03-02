@@ -34,8 +34,13 @@ local oneshot = false;
 local edgeTrigger = true;
 local s = assert( sentry.default() );
 -- create io watcher: 1 = stdout
-local e = s:writable( 1, oneshot, edgeTrigger );
+local e = assert( s:newevent() );
+local err = e:aswritable( 1, oneshot, edgeTrigger );
 local nevt, ev, etype, ishup;
+
+if err then
+    error( err );
+end
 
 print( 'event type', e:typeof(), sentry.EV_WRITABLE );
 

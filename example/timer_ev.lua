@@ -33,8 +33,13 @@ local nrep = 0;
 local oneshot = false;
 local sec = 2;
 local s = assert( sentry.default() );
-local e = assert( s:timer( sec, nil, oneshot ) );
-local nevt, err, ev, etype, ishup;
+local e = assert( s:newevent() );
+local err = e:astimer( sec, nil, oneshot );
+local nevt, ev, etype, ishup;
+
+if err then
+    error( err );
+end
 
 print( 'event type', e:typeof(), sentry.EV_TIMER );
 

@@ -1,105 +1,144 @@
 local inspect = require('util').inspect;
-local process = require('process');
 local sentry = require('sentry');
 local lls = require('llsocket');
-local bind = lls.inet.bind;
-local listen = lls.listen;
-local close = lls.close;
-local recv = lls.recv;
-local send = lls.send;
-local accept = lls.acceptInherits;
+local getaddrinfoInet = lls.inet.getaddrinfo;
+local socket = lls.socket;
 local SOCK_STREAM = lls.SOCK_STREAM;
 local HOST = '127.0.0.1';
 local PORT = '5000';
+local NOONESHOT = false;
+local EDGE = true;
 local NONBLOCK = true;
 local REUSEADDR = true;
-local RecvTotal = 0;
-local SendTotal = 0;
+local NCONN = 0;
 
-local function dispose( req )
-    print( 'delete request', req.evr, req.evw );
+
+local function echoClose( req )
+    --print( 'delete request', req.evr, req.evw );
     if req.evr then
         req.evr:unwatch();
     end
     
     if req.evw then
-        erq.evw:unwatch();
+        req.evw:unwatch();
     end
     
-    close( req.fd );
+    req.sock:close();
+    NCONN = NCONN - 1;
+    print( 'connection ', NCONN );
 end
 
-local function echo( req, ishup )
-    if ishup then
-        dispose( req );
-    elseif req.waitw then
-        local len, err, again = send( req.fd, req.msg );
+
+local function echoSendQ( req )
+    --print( 'echo send ', req.qtail, req.qhead );
+    if req.qtail >= req.qhead then
+        local sock = req.sock;
+        local msgq, qhead, qtail = req.msgq, req.qhead, req.qtail;
+        local len, err, again;
+
+        for i = req.qhead, req.qtail do
+            len, err, again = sock:send( msgq[i] );
+
+            if not len then
+                if err then
+                    print( 'failed to send', err );
+                end
+                return echoClose( req );
+            elseif again then
+                msgq[i] = msgq[i]:sub( len + 1 );
+                break;
+            end
+
+            qhead = i + 1;
+            msgq[i] = nil;
+        end
+
+        if qhead > qtail then
+            print( 'rewind msgq' );
+            req.qhead, req.qtail = 1, 0;
+        end
+    end
+end
+
+
+local function pushSendQ( req, msg )
+    req.qtail = req.qtail + 1;
+    req.msgq[req.qtail] = msg;
+    print( 'push to msgq', msg );
+end
+
+
+local function echoRecv( req )
+    local msg, err, again = req.sock:recv();
+
+    if again then
+        print( 'recv again' );
+    -- close by peer
+    elseif not msg then
+        if err then
+            print( 'failed to recv', err );
+        end
+        echoClose( req );
+    elseif req.qtail > 0 then
+        pushSendQ( req, msg );
+    else
+        local len;
         
-        if not again then
+        len, err, again = req.sock:send( msg );
+        if not len then
             if err then
                 print( 'failed to send', err );
-                dispose( req );
-            else
-                assert( req.evw:unwatch() );
-                assert( req.evr:watch() );
-                req.waitw = false;
-                if len then
-                    SendTotal = SendTotal + len;
-                end
             end
-        end
-    else
-        local msg, err, again = recv( req.fd );
-        
-        if not again then
-            -- close by peer
-            if not msg then
-                if err then
-                    print( 'failed to recv', err );
-                end
-                dispose( req );
-            else
-                local len;
-                
-                RecvTotal = RecvTotal + #msg;
-                len, err, again = send( req.fd, msg );
-                if again then
-                    assert( req.evr:unwatch() );
-                    req.evw = assert( req.s:writable( req.fd, req ) );
-                    req.waitw = true;
-                    req.msg = msg;
-                elseif err then
-                    print('failed to send', err );
-                    dispose( req );
-                elseif len then
-                    SendTotal = SendTotal + len;
-                end
-            end
+            echoClose( req );
+        elseif again then
+            pushSendQ( req, msg:sub( len + 1 ) );
         end
     end
 end
 
 
-local function acceptClient( s, sfd )
-    local fd, err, again = accept( sfd );
-    
-    if not again then
-        if err then
+local function acceptClient( s, server, ishup )
+    if ishup then
+        error( 'server socket has been closed' );
+    else
+        local sock, err, again = server:accept();
+        
+        if again then
+            print( 'accept again' );
+        elseif err then
             print( 'failed to accept', err );
         else
             local req = {
                 s = s,
-                fd = fd
+                sock = sock,
+                msgq = {},
+                qhead = 1,
+                qtail = 0;
             };
-            
-            req.evr, err = s:readable( fd, req );
+
+            NCONN = NCONN + 1;
+            --sock:sndbuf( 5 );
+            -- create read/write event
+            req.evr, err = s:newevent();
+            if not err then
+                err = req.evr:asreadable( sock:fd(), req );
+                -- create write event
+                if not err then
+                    req.evw, err = s:newevent();
+                    if not err then
+                        err = req.evw:aswritable( sock:fd(), req, NOONESHOT, EDGE );
+                    end
+                end
+            end
+
+            -- got error
             if err then
-                print( 'failed to register readable', fd, err );
-                close( fd );
+                print( 'failed to register read/write event', sock, err );
+                echoClose( req );
+            else
+                print( 'connection', NCONN );
             end
         end
-    else
-        print( 'accept again' );
     end
 end
 
@@ -107,35 +146,56 @@ end
 local function createServer()
     -- create loop
     local s = assert( sentry.default() );
-    local clients = {};
-    local sfd, sev, ev, nevt, ishup, ctx;
-    
     -- create bind socket
-    sfd = assert( bind( HOST, PORT, SOCK_STREAM, NONBLOCK, REUSEADDR ) );
-    err = listen( sfd );
+    local addrs = assert( getaddrinfoInet( HOST, PORT, SOCK_STREAM ) );
+    local server, sev, ev, nevt, ishup, ctx, err;
+
+    for _, addr in ipairs( addrs ) do
+        server, err = socket.new( addr, NONBLOCK );
+        if server then
+            assert( server:reuseaddr( true ) );
+            err = server:bind();
+            if not err then
+                err = server:listen();
+            end
+            break;
+        end
+    end
+
     if err then
         error( err );
     end
-        
-    sev = assert( s:readable( sfd ) );
+
+    sev = assert( s:newevent() );
+    err = sev:asreadable( server:fd() );
+    if err then
+        error( err );
+    end
+
     -- run
     print( 'start server: ', HOST, PORT );
     
     -- event-loop
     repeat
-        nevt = s:wait(1);
-        if nevt == 0 then
-            print(
-                ('rt: %d, st: %d'):format( RecvTotal, SendTotal )
-            );
+        nevt, err = s:wait(-1);
+        if err then
+            print( err );
+            break;
+        elseif nevt == 0 then
+            print( 'no event' );
         else
+            --print('got event', nevt );
             ev, etype, ishup, ctx = s:getevent();
             while ev do
                 --print('got event', nevt, ishup, ev, ctx );
                 if ev == sev then
-                    acceptClient( s, sfd );
+                    acceptClient( s, server, ishup );
+                elseif ishup then
+                    echoClose( ctx );
+                elseif ctx.evr == ev then
+                    echoRecv( ctx );
                 else
-                    echo( ctx, ishup );
+                    echoSendQ( ctx );
                 end
                 ev, etype, ishup, ctx = s:getevent();
             end
@@ -146,4 +206,3 @@ local function createServer()
 end
 
 createServer();
-
