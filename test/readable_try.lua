@@ -13,7 +13,7 @@ local e = ifNil( s:newevent() );
 local timer = ifNil( s:newevent() );
 
 -- timer
-ifNil( timer:astimer( 1, ctx, true ) );
+ifNotNil( timer:astimer( 1, ctx, true ) );
 ifNotTrue( timer:unwatch() );
 
 -- socketpair
@@ -44,7 +44,7 @@ for _, v in ipairs({ str, num, int, tbl, fn, co }) do
 end
 
 -- oneshot
-ifNil( e:asreadable( fds[1]:fd(), ctx, true ) );
+ifNotNil( e:asreadable( fds[1]:fd(), ctx, true ) );
 -- verify type
 ifNotTrue( e:typeof() == sentry.EV_READABLE, 'invalid implements' );
 
@@ -78,7 +78,7 @@ ifNotNil( ev, 'invalid implements' );
 
 -- repeatable
 nrep = 0;
-ifNil( e:asreadable( fds[1]:fd(), ctx, false ) );
+ifNotNil( e:asreadable( fds[1]:fd(), ctx, false ) );
 -- verify repeatable
 repeat
     nevt = s:wait(-1);
@@ -122,7 +122,7 @@ until #s == 0;
 
 -- repeatable
 nrep = 0;
-ifNil( e:asreadable( fds[1]:fd(), ctx, false, true ) );
+ifNotNil( e:asreadable( fds[1]:fd(), ctx, false, true ) );
 -- verify edge
 repeat
     nevt = s:wait(-1);
