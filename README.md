@@ -22,7 +22,7 @@ luarocks install sentry --from=http://mah0x211.github.io/rocks/
 - `sentry.EV_SIGNAL` signal event.
 
 
-## Creating a Sentry
+## Creating a Sentry Object
 
 ### s, err = sentry.new( [bufsize:int] );
 
@@ -51,77 +51,12 @@ returns the default sentry object.
 **Parameters** and **Returns** are same as sentry.new function.
 
 
-
 ## Sentry Methods
 
 
-### ev, err = s:timer( timeout:number [, ctx:any [, oneshot:boolean]] )
+### s, err = s:newevent();
 
-creating a timer event object and register that event.
-
-
-**Parameters**
-
-- `timeout:number`: timeout seconds.
-- `ctx:any`: context object.
-- `oneshot:boolean`: automatically unregister this event when event occurred.
-
-
-**Returns**
-
-- `ev:userdata`: event object on success, or nil on failure.
-- `err:string`: error string.
-
-
-### ev, err = s:signal( signo:int [, ctx:any [, oneshot:boolean]] )
-
-creating a signal event object and register that event.
-
-
-**Parameters**
-
-- `signo:int`: signal number.
-- `ctx:any`: context object.
-- `oneshot:boolean`: automatically unregister this event when event occurred.
-
-
-**Returns**
-
-- `ev:userdata`: event object on success, or nil on failure.
-- `err:string`: error string.
-
-
-### ev, err = s:readable( fd:int [, ctx:any [, oneshot:boolean [, edge:boolean]]] )
-
-creating a readable event object and register that event.
-
-
-**Parameters**
-
-- `fd:int`: descriptor.
-- `ctx:any`: context object.
-- `oneshot:boolean`: automatically unregister this event when event occurred.
-- `edge:boolean`: using an edge-trigger if specified a true. `default: level-trigger`.
-
-
-**Returns**
-
-- `ev:userdata`: event object on success, or nil on failure.
-- `err:string`: error string.
-
-
-### ev, err = s:writable( fd:int [, ctx:any [, oneshot:boolean [, edge:boolean]]] )
-
-creating a writable event object and register that event.
-
-
-**Parameters**
-
-- `fd:int`: descriptor.
-- `ctx:any`: context object.
-- `oneshot:boolean`: automatically unregister this event when event occurred.
-- `edge:boolean`: using an edge-trigger if specified a true. `default: level-trigger`.
-
+returns the new [empty event object](#empty-event-object-methods).
 
 **Returns**
 
@@ -158,7 +93,87 @@ returns an event object.
 - `ctx:any`: context object.
 
 
-## Event Methods
+## Empty Event Object Methods
+
+empty event object can be use as following event object;
+
+### err = ev:astimer( timeout:number [, ctx:any [, oneshot:boolean]] )
+
+to use the event object as a timer event.
+
+**Parameters**
+
+- `timeout:number`: timeout seconds.
+- `ctx:any`: context object.
+- `oneshot:boolean`: automatically unregister this event when event occurred.
+
+
+**Returns**
+
+- `err:string`: nil on success, or error string on failure.
+
+
+### err = ev:assignal( signo:int [, ctx:any [, oneshot:boolean]] )
+
+to use as a signal event.
+
+**Parameters**
+
+- `signo:int`: signal number.
+- `ctx:any`: context object.
+- `oneshot:boolean`: automatically unregister this event when event occurred.
+
+
+**Returns**
+
+- `err:string`: nil on success, or error string on failure.
+
+
+### err = ev:asreadable( fd:int [, ctx:any [, oneshot:boolean [, edge:boolean]]] )
+
+to use as a readable event.
+
+**Parameters**
+
+- `fd:int`: descriptor.
+- `ctx:any`: context object.
+- `oneshot:boolean`: automatically unregister this event when event occurred.
+- `edge:boolean`: using an edge-trigger if specified a true. `default: level-trigger`.
+
+
+**Returns**
+
+- `err:string`: nil on success, or error string on failure.
+
+
+### err = ev:aswritable( fd:int [, ctx:any [, oneshot:boolean [, edge:boolean]]] )
+
+to use as a writable event.
+
+**Parameters**
+
+- `fd:int`: descriptor.
+- `ctx:any`: context object.
+- `oneshot:boolean`: automatically unregister this event when event occurred.
+- `edge:boolean`: using an edge-trigger if specified a true. `default: level-trigger`.
+
+
+**Returns**
+
+- `err:string`: nil on success, or error string on failure.
+
+
+## Common Methods Of Non-Empty Event Object.
+
+
+### ev = ev:revert()
+
+revert to an empty event object.
+
+**Returns**
+
+- `ev:userdata`: empty event object.
+
 
 ### id = ev:ident()
 
