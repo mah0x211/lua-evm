@@ -75,16 +75,15 @@ static int asfd_lua( lua_State *L, fd_initializer proc, const char *mt )
         lua_settop( L, 1 );
         // set metatable
         lstate_setmetatable( L, mt );
-        e->ref = lstate_refat( L, -1 );
-        return 1;
+        e->ref = lstate_ref( L );
+        return 0;
     }
     
     // got error
     lstate_unref( L, ctx );
-    lua_pushnil( L );
     lua_pushstring( L, strerror( errno ) );
 
-    return 2;
+    return 1;
 }
 
 
@@ -142,16 +141,15 @@ static int assignal_lua( lua_State *L )
         lua_settop( L, 1 );
         // set signal metatable
         lstate_setmetatable( L, SENTRY_SIGNAL_MT );
-        e->ref = lstate_refat( L, -1 );
-        return 1;
+        e->ref = lstate_ref( L );
+        return 0;
     }
     
     // got error
     lstate_unref( L, ctx );
-    lua_pushnil( L );
     lua_pushstring( L, strerror( errno ) );
 
-    return 2;
+    return 1;
 }
 
 
@@ -193,16 +191,15 @@ static int astimer_lua( lua_State *L )
         lua_settop( L, 1 );
         // set timer metatable
         lstate_setmetatable( L, SENTRY_TIMER_MT );
-        e->ref = lstate_refat( L, -1 );
-        return 1;
+        e->ref = lstate_ref( L );
+        return 0;
     }
     
     // got error
     lstate_unref( L, ctx );
-    lua_pushnil( L );
     lua_pushstring( L, strerror( errno ) );
 
-    return 2;
+    return 1;
 }
 
 
