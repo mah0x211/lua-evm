@@ -1,4 +1,5 @@
 local sentry = require('sentry');
+local unpack = unpack or table.unpack;
 local str = 'string';
 local num = 1.1;
 local int = 1;
@@ -8,7 +9,7 @@ local fn = function()end
 local co = coroutine.create(fn);
 local ctx = {};
 local s = ifNil( sentry.default() );
-local e = ifNil( s:newevent() );
+local e = unpack( ifNil( s:newevent() ) );
 
 -- invalid arguments
 -- sec must be number
