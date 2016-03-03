@@ -203,6 +203,13 @@ static int astimer_lua( lua_State *L )
 }
 
 
+// common method
+static int revert_lua( lua_State *L )
+{
+    return 1;
+}
+
+
 static int tostring_lua( lua_State *L )
 {
     return TOSTRING_MT( L, SENTRY_EVENT_MT );
@@ -217,6 +224,7 @@ LUALIB_API int luaopen_sentry_event( lua_State *L )
         { NULL, NULL }
     };
     struct luaL_Reg method[] = {
+        { "revert", revert_lua },
         { "astimer", astimer_lua },
         { "assignal", assignal_lua },
         { "asreadable", asreadable_lua },
