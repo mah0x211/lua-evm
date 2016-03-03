@@ -1,3 +1,4 @@
+local unpack = unpack or table.unpack;
 local inspect = require('util').inspect;
 local sentry = require('sentry');
 local lls = require('llsocket');
@@ -15,12 +16,9 @@ local NCONN = 0;
 
 local function echoClose( req )
     --print( 'delete request', req.evr, req.evw );
-    if req.evr then
-        req.evr:unwatch();
-    end
-    
-    if req.evw then
-        req.evw:unwatch();
+    if req.evs then
+        req.evs[1]:revert();
+        req.evs[2]:revert();
     end
     
     req.sock:close();
@@ -119,16 +117,10 @@ local function acceptClient( s, server, ishup )
             NCONN = NCONN + 1;
             --sock:sndbuf( 5 );
             -- create read/write event
-            req.evr, err = s:newevent();
+            req.evs, err = s:newevent( 2 );
             if not err then
-                err = req.evr:asreadable( sock:fd(), req );
-                -- create write event
-                if not err then
-                    req.evw, err = s:newevent();
-                    if not err then
-                        err = req.evw:aswritable( sock:fd(), req, NOONESHOT, EDGE );
-                    end
-                end
+                err = req.evs[1]:asreadable( sock:fd(), req ) or
+                      req.evs[2]:aswritable( sock:fd(), req, NOONESHOT, EDGE );
             end
 
             -- got error
@@ -166,7 +158,7 @@ local function createServer()
         error( err );
     end
 
-    sev = assert( s:newevent() );
+    sev = unpack( assert( s:newevent() ) );
     err = sev:asreadable( server:fd() );
     if err then
         error( err );
@@ -192,7 +184,7 @@ local function createServer()
                     acceptClient( s, server, ishup );
                 elseif ishup then
                     echoClose( ctx );
-                elseif ctx.evr == ev then
+                elseif ctx.evs[1] == ev then
                     echoRecv( ctx );
                 else
                     echoSendQ( ctx );

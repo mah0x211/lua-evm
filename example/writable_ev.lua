@@ -27,6 +27,7 @@
   
 --]]
 
+local unpack = unpack or table.unpack;
 local sentry = require('sentry');
 local waitsec = 2;
 local nrep = 0;
@@ -34,7 +35,7 @@ local oneshot = false;
 local edgeTrigger = true;
 local s = assert( sentry.default() );
 -- create io watcher: 1 = stdout
-local e = assert( s:newevent() );
+local e = unpack( assert( s:newevent() ) );
 local err = e:aswritable( 1, oneshot, edgeTrigger );
 local nevt, ev, etype, ishup;
 

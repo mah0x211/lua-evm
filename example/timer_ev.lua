@@ -27,13 +27,14 @@
   
 --]]
 
+local unpack = unpack or table.unpack;
 local sentry = require('sentry');
 local waitsec = 1;
 local nrep = 0;
 local oneshot = false;
 local sec = 2;
 local s = assert( sentry.default() );
-local e = assert( s:newevent() );
+local e = unpack( assert( s:newevent() ) );
 local err = e:astimer( sec, nil, oneshot );
 local nevt, ev, etype, ishup;
 

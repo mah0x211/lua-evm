@@ -27,6 +27,7 @@
   
 --]]
 
+local unpack = unpack or table.unpack;
 local sentry = require('sentry');
 -- https://github.com/mah0x211/lua-signal
 local signal = require('signal');
@@ -34,7 +35,7 @@ local waitsec = 2;
 local nrep = 0;
 local oneshot = false;
 local s = assert( sentry.default() );
-local e = assert( s:newevent() );
+local e = unpack( assert( s:newevent() ) );
 local err = e:assignal( signal.SIGINT, nil, oneshot );
 local nevt, ev, etype, ishup;
 
