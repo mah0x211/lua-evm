@@ -219,7 +219,6 @@ static int tostring_lua( lua_State *L )
 LUALIB_API int luaopen_sentry_event( lua_State *L )
 {
     struct luaL_Reg mmethod[] = {
-        { "__gc", sev_gc_lua },
         { "__tostring", tostring_lua },
         { NULL, NULL }
     };
