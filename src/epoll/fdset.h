@@ -64,12 +64,12 @@ static inline int fdset_realloc( fdset_t *set, int fd )
     else if( fd >= set->nevs )
     {
         // realloc event container
-        void **evs = realloc( set->evs, ( fd + 1 ) * sizeof( void* ) );
+        void **evs = realloc( set->evs, ( fd + 1 ) * FV_SIZE );
         
         if( !evs ){
             return -1;
         }
-        memset( evs + FV_SIZE * set->nevs, 0, ( fd - set->nevs ) * FV_SIZE );
+        memset( evs + fd, 0, FV_SIZE );
         set->nevs = fd;
         set->evs = evs;
     }
