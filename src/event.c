@@ -206,6 +206,7 @@ static int astimer_lua( lua_State *L )
 // common method
 static int revert_lua( lua_State *L )
 {
+    #pragma unused(L)
     return 1;
 }
 
