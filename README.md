@@ -64,6 +64,21 @@ returns the new [empty event object](#empty-event-object-methods).
 - `err:string`: error string.
 
 
+### evs, err = s:newevents( [nevt:int] );
+
+returns the table that has new [empty event object(s)](#empty-event-object-methods).
+
+**Parameters**
+
+- `nevt:int`: number of new event. (`default 1`)
+
+**Returns**
+
+- `evs:table`: table on success, or nil on failure.
+- `err:string`: error string.
+
+
+
 ### nevt, err = s:wait( [timeout:int] )
 
 wait until event occurring.
