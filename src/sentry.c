@@ -107,7 +107,31 @@ static int getevent_lua( lua_State *L )
 }
 
 
-static inline int newevent_lua( lua_State *L )
+static inline int allocevent( lua_State *L, sentry_t *s )
+{
+    sentry_ev_t *e = lua_newuserdata( L, sizeof( sentry_ev_t ) );
+
+    if( e ){
+        // clear
+        memset( (void*)e, 0, sizeof( sentry_ev_t ) );
+        e->s = s;
+        e->ctx = LUA_NOREF;
+        e->ref = LUA_NOREF;
+        // set metatable
+        lstate_setmetatable( L, SENTRY_EVENT_MT );
+        return 1;
+    }
+
+    // got error
+    lua_settop( L, 0 );
+    lua_pushnil( L );
+    lua_pushstring( L, strerror( errno ) );
+
+    return 2;
+}
+
+
+static int newevents_lua( lua_State *L )
 {
     sentry_t *s = luaL_checkudata( L, 1, SENTRY_MT );
     int nevt = (int)luaL_optinteger( L, 2, 1 );
@@ -117,28 +141,19 @@ static inline int newevent_lua( lua_State *L )
     }
     else
     {
-        sentry_ev_t *e = NULL;
         int i = 0;
 
         lua_settop( L, 0 );
         lua_createtable( L, nevt, 0 );
         for(; i < nevt; i++ )
         {
-            if( ( e = lua_newuserdata( L, sizeof( sentry_ev_t ) ) ) ){
-                // clear
-                memset( (void*)e, 0, sizeof( sentry_ev_t ) );
-                e->s = s;
-                e->ctx = LUA_NOREF;
-                e->ref = LUA_NOREF;
-                // set metatable
-                lstate_setmetatable( L, SENTRY_EVENT_MT );
-                lua_rawseti( L, -2, i + 1 );
+            if( allocevent( L, s ) != 1 ){
+                return 2;
             }
+            lua_rawseti( L, -2, i + 1 );
         }
 
-        if( i == nevt ){
-            return 1;
-        }
+        return 1;
     }
 
     // got error
@@ -147,6 +162,14 @@ static inline int newevent_lua( lua_State *L )
     lua_pushstring( L, strerror( errno ) );
 
     return 2;
+}
+
+
+static int newevent_lua( lua_State *L )
+{
+    sentry_t *s = luaL_checkudata( L, 1, SENTRY_MT );
+
+    return allocevent( L, s );
 }
 
 
@@ -274,6 +297,7 @@ LUALIB_API int luaopen_sentry( lua_State *L )
     };
     struct luaL_Reg method[] = {
         { "newevent", newevent_lua },
+        { "newevents", newevents_lua },
         { "getevent", getevent_lua },
         { "wait", wait_lua },
         { NULL, NULL }
