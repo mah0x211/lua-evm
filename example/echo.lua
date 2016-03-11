@@ -1,4 +1,3 @@
-local unpack = unpack or table.unpack;
 local inspect = require('util').inspect;
 local sentry = require('sentry');
 local lls = require('llsocket');
@@ -117,7 +116,7 @@ local function acceptClient( s, server, ishup )
             NCONN = NCONN + 1;
             --sock:sndbuf( 5 );
             -- create read/write event
-            req.evs, err = s:newevent( 2 );
+            req.evs, err = s:newevents( 2 );
             if not err then
                 err = req.evs[1]:asreadable( sock:fd(), req ) or
                       req.evs[2]:aswritable( sock:fd(), req, NOONESHOT, EDGE );
@@ -158,7 +157,7 @@ local function createServer()
         error( err );
     end
 
-    sev = unpack( assert( s:newevent() ) );
+    sev = assert( s:newevent() );
     err = sev:asreadable( server:fd() );
     if err then
         error( err );
