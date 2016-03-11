@@ -89,13 +89,13 @@ static int asfd_lua( lua_State *L, fd_initializer proc, const char *mt )
 
 static int aswritable_lua( lua_State *L )
 {
-    return asfd_lua( L, sev_writable_new, SENTRY_WRITABLE_MT );
+    return asfd_lua( L, sev_aswritable, SENTRY_WRITABLE_MT );
 }
 
 
 static int asreadable_lua( lua_State *L )
 {
-    return asfd_lua( L, sev_readable_new, SENTRY_READABLE_MT );
+    return asfd_lua( L, sev_asreadable, SENTRY_READABLE_MT );
 }
 
 
@@ -136,7 +136,7 @@ static int assignal_lua( lua_State *L )
     }
 
     // set signal-event
-    if( sev_signal_new( e, signo, oneshot ) == 0 ){
+    if( sev_assignal( e, signo, oneshot ) == 0 ){
         e->ctx = ctx;
         lua_settop( L, 1 );
         // set signal metatable
@@ -186,7 +186,7 @@ static int astimer_lua( lua_State *L )
     }
     
     // create timer-event
-    if( sev_timer_new( e, timeout, oneshot ) == 0 ){
+    if( sev_astimer( e, timeout, oneshot ) == 0 ){
         e->ctx = ctx;
         lua_settop( L, 1 );
         // set timer metatable

@@ -104,8 +104,8 @@ static inline int sentry_register( sentry_ev_t *e )
 // MARK: API for sentry_ev_t
 
 
-static inline int sev_fd_new( sentry_ev_t *e, int fd, int oneshot, int edge,
-                              int filter )
+static inline int sev_asfd( sentry_ev_t *e, int fd, int oneshot, int edge,
+                            int filter )
 {
     sentry_ev_t *sibling = fdismember( &e->s->fds, fd );
     kevt_t evt = {
@@ -146,20 +146,20 @@ static inline int sev_fd_new( sentry_ev_t *e, int fd, int oneshot, int edge,
     return -1;
 }
 
-static inline int sev_readable_new( sentry_ev_t *e, int fd, int oneshot,
-                                    int edge )
+static inline int sev_asreadable( sentry_ev_t *e, int fd, int oneshot,
+                                  int edge )
 {
-    return sev_fd_new( e, fd, oneshot, edge, EVFILT_READ );
+    return sev_asfd( e, fd, oneshot, edge, EVFILT_READ );
 }
 
-static inline int sev_writable_new( sentry_ev_t *e, int fd, int oneshot,
-                                    int edge )
+static inline int sev_aswritable( sentry_ev_t *e, int fd, int oneshot,
+                                  int edge )
 {
-    return sev_fd_new( e, fd, oneshot, edge, EVFILT_WRITE );
+    return sev_asfd( e, fd, oneshot, edge, EVFILT_WRITE );
 }
 
 
-static inline int sev_signal_new( sentry_ev_t *e, int signo, int oneshot )
+static inline int sev_assignal( sentry_ev_t *e, int signo, int oneshot )
 {
     // already watched
     if( sigismember( &e->s->signals, signo ) ){
@@ -197,7 +197,7 @@ static inline int sev_signal_new( sentry_ev_t *e, int signo, int oneshot )
 }
 
 
-static inline int sev_timer_new( sentry_ev_t *e, double timeout, int oneshot )
+static inline int sev_astimer( sentry_ev_t *e, double timeout, int oneshot )
 {
     // create timerfd
     int fd = timerfd_create( CLOCK_MONOTONIC, TFD_NONBLOCK|TFD_CLOEXEC );

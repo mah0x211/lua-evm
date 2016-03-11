@@ -121,7 +121,7 @@ static inline int sentry_register( sentry_ev_t *e )
 // MARK: API for sentry_ev_t
 
 
-#define sev_fd_new( e, fd, type, oneshot, edge ) do { \
+#define sev_asfd( e, fd, type, oneshot, edge ) do { \
     /* already watched */ \
     if( fdismember( &(e)->s->fds, (fd), FDSET_##type ) == 1 ){ \
         errno = EALREADY; \
@@ -146,20 +146,20 @@ static inline int sentry_register( sentry_ev_t *e )
 }while(0)
 
 
-static inline int sev_writable_new( sentry_ev_t *e, int fd, int oneshot,
-                                    int edge )
+static inline int sev_aswritable( sentry_ev_t *e, int fd, int oneshot,
+                                  int edge )
 {
-    sev_fd_new( e, fd, WRITE, oneshot, edge );
+    sev_asfd( e, fd, WRITE, oneshot, edge );
 }
 
-static inline int sev_readable_new( sentry_ev_t *e, int fd, int oneshot,
-                                    int edge )
+static inline int sev_asreadable( sentry_ev_t *e, int fd, int oneshot,
+                                  int edge )
 {
-    sev_fd_new( e, fd, READ, oneshot, edge );
+    sev_asfd( e, fd, READ, oneshot, edge );
 }
 
 
-static inline int sev_signal_new( sentry_ev_t *e, int signo, int oneshot )
+static inline int sev_assignal( sentry_ev_t *e, int signo, int oneshot )
 {
     // already watched
     if( sigismember( &e->s->signals, signo ) ){
@@ -187,7 +187,7 @@ static inline int sev_signal_new( sentry_ev_t *e, int signo, int oneshot )
 }
 
 
-static inline int sev_timer_new( sentry_ev_t *e, double timeout, int oneshot )
+static inline int sev_astimer( sentry_ev_t *e, double timeout, int oneshot )
 {
     // set event fields
     EV_SET(
