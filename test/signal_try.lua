@@ -11,7 +11,7 @@ local fn = function()end
 local co = coroutine.create(fn);
 local ctx = {};
 local s = ifNil( sentry.default() );
-local e, timer = unpack( ifNil( s:newevent( 2 ) ) );
+local e, timer = unpack( ifNil( s:newevents( 2 ) ) );
 
 -- block SIGINT
 ifNotTrue( signal.block( SIGINT ) );
