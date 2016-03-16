@@ -89,18 +89,23 @@ static int getevent_lua( lua_State *L )
         lstate_pushref( L, e->ref );
         lua_pushinteger( L, sev_type( e ) );
         lua_pushboolean( L, sev_is_hup( e ) );
-        // release reference if deleted
-        if( isdel ){
-            e->ref = lstate_unref( L, e->ref );
-            s->nreg--;
-        }
         // push context if retained
         if( lstate_isref( e->ctx ) ){
             lstate_pushref( L, e->ctx );
-            return 4;
         }
-        
-        return 3;
+        else{
+            lua_pushnil( L );
+        }
+
+        // release reference if deleted
+        if( isdel ){
+            lua_pushboolean( L, isdel );
+            e->ref = lstate_unref( L, e->ref );
+            s->nreg--;
+            return 5;
+        }
+
+        return 4;
     }
     
     return 0;
