@@ -95,7 +95,7 @@ wait until event occurring.
 - `err:string`: error string.
 
 
-### ev, evtype, ishup, ctx = s:getevent()
+### ev, evtype, ishup, ctx, disabled = s:getevent()
 
 returns an event object.
 
@@ -104,8 +104,9 @@ returns an event object.
 
 - `ev:userdata`: event object or nil.
 - `evtype:int`: event type.
-- `ishup:boolean`: true on hang-up events.
+- `ishup:boolean`: if true, event was aborted(hang-up).
 - `ctx:any`: context object.
+- `disabled:boolean`: if true, event is disabled.
 
 
 ## Empty Event Object Methods
