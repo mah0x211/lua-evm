@@ -44,6 +44,7 @@ static int wait_lua( lua_State *L )
     while( ( e = sentry_getev( s, &isdel ) ) )
     {
         if( isdel ){
+            isdel = 0;
             e->ref = lstate_unref( L, e->ref );
             s->nreg--;
         }
