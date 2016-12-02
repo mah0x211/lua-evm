@@ -221,8 +221,8 @@ static int new_lua( lua_State *L )
     {
         nbuf = (int)luaL_checkinteger( L, 1 );
         if( nbuf < 1 || nbuf > INT_MAX ){
-            return luaL_error( 
-                L, "event buffer value range must be 1 to %d", INT_MAX 
+            return luaL_error(
+                L, "event buffer value range must be 1 to %d", INT_MAX
             );
         }
     }
