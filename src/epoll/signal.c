@@ -2,10 +2,10 @@
  *  Copyright (C) 2016 Masatoshi Teruya
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a
- *  copy of this software and associated documentation files (the "Software"), 
- *  to deal in the Software without restriction, including without limitation 
- *  the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- *  and/or sell copies of the Software, and to permit persons to whom the 
+ *  copy of this software and associated documentation files (the "Software"),
+ *  to deal in the Software without restriction, including without limitation
+ *  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ *  and/or sell copies of the Software, and to permit persons to whom the
  *  Software is furnished to do so, subject to the following conditions:
  *
  *  The above copyright notice and this permission notice shall be included in
@@ -15,8 +15,8 @@
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
  *  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- *  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ *  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  *  DEALINGS IN THE SOFTWARE.
  *
  *  epoll/signal.c
@@ -32,7 +32,7 @@ static int unwatch_lua( lua_State *L )
 {
     sentry_ev_t *e = NULL;
     int rc = sev_unwatch_lua( L, SENTRY_SIGNAL_MT, &e );
-    
+
     // del signo from sigset
     if( e ){
         sigdelset( &e->s->signals, e->ident );
@@ -46,12 +46,12 @@ static int watch_lua( lua_State *L )
 {
     sentry_ev_t *e = NULL;
     int rc = sev_watch_lua( L, SENTRY_SIGNAL_MT, &e );
-    
+
     // add signo to sigset
     if( e ){
         sigaddset( &e->s->signals, e->ident );
     }
-    
+
     return rc;
 }
 
@@ -104,9 +104,9 @@ LUALIB_API int luaopen_sentry_signal( lua_State *L )
         { "unwatch", unwatch_lua },
         { NULL, NULL }
     };
-    
+
     sentry_define_mt( L, SENTRY_SIGNAL_MT, mmethod, method );
-    
+
     return 0;
 }
 

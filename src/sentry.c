@@ -2,10 +2,10 @@
  *  Copyright (C) 2015 Masatoshi Teruya
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a
- *  copy of this software and associated documentation files (the "Software"), 
- *  to deal in the Software without restriction, including without limitation 
- *  the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- *  and/or sell copies of the Software, and to permit persons to whom the 
+ *  copy of this software and associated documentation files (the "Software"),
+ *  to deal in the Software without restriction, including without limitation
+ *  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ *  and/or sell copies of the Software, and to permit persons to whom the
  *  Software is furnished to do so, subject to the following conditions:
  *
  *  The above copyright notice and this permission notice shall be included in
@@ -15,8 +15,8 @@
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
  *  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- *  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ *  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  *  DEALINGS IN THE SOFTWARE.
  *
  *  sentry.c
@@ -38,7 +38,7 @@ static int wait_lua( lua_State *L )
     int timeout = (int)luaL_optinteger( L, 2, -1 );
     sentry_ev_t *e = NULL;
     int isdel = 0;
-    
+
     // check arguments
     // cleanup current events
     while( ( e = sentry_getev( s, &isdel ) ) )
@@ -48,7 +48,7 @@ static int wait_lua( lua_State *L )
             s->nreg--;
         }
     }
-    
+
     // wait event
     s->nevt = sentry_wait( s, timeout );
     // got errno
@@ -61,7 +61,7 @@ static int wait_lua( lua_State *L )
                 s->nevt = 0;
                 errno = 0;
             break;
-            
+
             // return error
             default:
                 lua_pushinteger( L, 0 );
@@ -69,10 +69,10 @@ static int wait_lua( lua_State *L )
                 return 2;
         }
     }
-    
+
     // return number of event
     lua_pushinteger( L, s->nevt );
-    
+
     return 1;
 }
 
@@ -82,7 +82,7 @@ static int getevent_lua( lua_State *L )
     sentry_t *s = luaL_checkudata( L, 1, SENTRY_MT );
     int isdel = 0;
     sentry_ev_t *e = sentry_getev( s, &isdel );
-    
+
     // return event, isdel and context
     if( e )
     {
@@ -107,7 +107,7 @@ static int getevent_lua( lua_State *L )
 
         return 4;
     }
-    
+
     return 0;
 }
 
@@ -181,9 +181,9 @@ static int newevent_lua( lua_State *L )
 static int len_lua( lua_State *L )
 {
     sentry_t *s = luaL_checkudata( L, 1, SENTRY_MT );
-    
+
     lua_pushinteger( L, s->nreg );
-    
+
     return 1;
 }
 
@@ -204,7 +204,7 @@ static int gc_lua( lua_State *L )
     }
     pdealloc( s->evs );
     fdset_dealloc( &s->fds );
-    
+
     return 0;
 }
 
@@ -214,7 +214,7 @@ static int new_lua( lua_State *L )
 {
     sentry_t *s = NULL;
     int nbuf = 128;
-    
+
     // check arguments
     // arg#1 number of event buffer size
     if( !lua_isnoneornil( L, 1 ) )
@@ -240,18 +240,18 @@ static int new_lua( lua_State *L )
                 s->nreg = 0;
                 s->nevt = 0;
                 sigemptyset( &s->signals );
-                
+
                 return 1;
             }
             fdset_dealloc( &s->fds );
         }
         pdealloc( s->evs );
     }
-    
+
     // got error
     lua_pushnil( L );
     lua_pushstring( L, strerror( errno ) );
-    
+
     return 2;
 }
 
@@ -279,13 +279,13 @@ static int default_lua( lua_State *L )
             lua_pop( L, 1 );
         }
     }
-    
+
     switch( new_lua( L ) ){
         case 1:
             DEFAULT_SENTRY = lstate_refat( L, -1 );
             SENTRY_PID = getpid();
             return 1;
-        
+
         default:
             return 2;
     }
@@ -307,7 +307,7 @@ LUALIB_API int luaopen_sentry( lua_State *L )
         { "wait", wait_lua },
         { NULL, NULL }
     };
-    
+
     // register event metatables
     luaopen_sentry_event( L );
     luaopen_sentry_readable( L );
@@ -327,7 +327,7 @@ LUALIB_API int luaopen_sentry( lua_State *L )
     lstate_num2tbl( L, "EV_WRITABLE", SENTRY_EV_WRITABLE );
     lstate_num2tbl( L, "EV_TIMER", SENTRY_EV_TIMER );
     lstate_num2tbl( L, "EV_SIGNAL", SENTRY_EV_SIGNAL );
-    
+
     return 1;
 }
 

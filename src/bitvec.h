@@ -32,7 +32,7 @@ static inline int bitvec_alloc( bitvec_t *bv, size_t nbit )
         bv->nbit = bv->nvec * BV_BIT;
         return 0;
     }
-    
+
     return -1;
 }
 
@@ -41,11 +41,11 @@ static inline int bitvec_realloc( bitvec_t *bv, size_t nbit )
     if( nbit > bv->nbit )
     {
         size_t nvec = BIT2VEC_SIZE( nbit );
-        
+
         if( nvec > bv->nvec )
         {
             BV_TYPE *vec = realloc( bv->vec, BV_BYTE * nvec );
-            
+
             if( vec ){
                 memset( vec + bv->nvec, 0, ( nvec - bv->nvec ) * BV_BYTE );
                 bv->vec = vec;
@@ -53,11 +53,11 @@ static inline int bitvec_realloc( bitvec_t *bv, size_t nbit )
                 bv->nbit = nvec * BV_BIT;
                 return 0;
             }
-            
+
             return -1;
         }
     }
-    
+
     return 0;
 }
 
@@ -71,7 +71,7 @@ static inline int bitvec_get( bitvec_t *bv, BV_TYPE pos )
     if( pos < bv->nbit ){
         return (int)((((BV_TYPE*)bv->vec)[pos/BV_BIT] >> (pos % BV_BIT)) & (BV_TYPE)1);
     }
-    
+
     errno = EDOM;
     return -1;
 }
@@ -82,7 +82,7 @@ static inline int bitvec_set( bitvec_t *bv, BV_TYPE pos )
         ((BV_TYPE*)bv->vec)[pos / BV_BIT] |= (BV_TYPE)1 << ( pos % BV_BIT );
         return 0;
     }
-    
+
     errno = EDOM;
     return -1;
 }
@@ -93,7 +93,7 @@ static inline int bitvec_unset( bitvec_t *bv, BV_TYPE pos )
         ((BV_TYPE*)bv->vec)[pos / BV_BIT] &= ~( (BV_TYPE)1 << ( pos % BV_BIT ) );
         return 0;
     }
-    
+
     errno = EDOM;
     return -1;
 }

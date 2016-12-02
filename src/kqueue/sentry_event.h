@@ -2,10 +2,10 @@
  *  Copyright (C) 2015 Masatoshi Teruya
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a
- *  copy of this software and associated documentation files (the "Software"), 
- *  to deal in the Software without restriction, including without limitation 
- *  the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- *  and/or sell copies of the Software, and to permit persons to whom the 
+ *  copy of this software and associated documentation files (the "Software"),
+ *  to deal in the Software without restriction, including without limitation
+ *  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ *  and/or sell copies of the Software, and to permit persons to whom the
  *  Software is furnished to do so, subject to the following conditions:
  *
  *  The above copyright notice and this permission notice shall be included in
@@ -15,8 +15,8 @@
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
  *  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- *  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ *  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  *  DEALINGS IN THE SOFTWARE.
  *
  *  kevent/sentry_event.h
@@ -37,7 +37,7 @@ static inline int sentry_wait( sentry_t *s, int timeout )
         timeout, 0
     };
     struct timespec *tsp = ( timeout < 0 ) ? NULL : &ts;
-    
+
     return kevent( s->fd, NULL, 0, s->evs, (int)s->nreg, tsp );
 }
 
@@ -47,7 +47,7 @@ static inline sentry_ev_t *sentry_getev( sentry_t *s, int *isdel )
     sentry_ev_t *e = NULL;
     kevt_t *evt = NULL;
     int delflg = 0;
-    
+
 CHECK_NEXT:
     if( s->nevt > 0 )
     {
@@ -81,7 +81,7 @@ CHECK_NEXT:
                 }
             break;
         }
-        
+
         // remove from kernel event
         if( delflg )
         {
@@ -96,11 +96,11 @@ CHECK_NEXT:
                 kevent( s->fd, evt, 1, NULL, 0, NULL );
             }
         }
-        
+
         e = (sentry_ev_t*)evt->udata;
         e->evt = *evt;
     }
-    
+
     return e;
 }
 
@@ -113,7 +113,7 @@ static inline int sentry_register( sentry_ev_t *e )
         e->s->nreg++;
         return 0;
     }
-    
+
     return -1;
 }
 
@@ -231,7 +231,7 @@ static inline int sev_typeof_lua( lua_State *L, const char *mt )
     sentry_ev_t *e = luaL_checkudata( L, 1, mt );
 
     lua_pushinteger( L, sev_type( e ) );
-    
+
     return 1;
 }
 
@@ -244,7 +244,7 @@ static inline int sev_context_lua( lua_State *L, const char *mt )
         lstate_pushref( L, e->ctx );
         return 1;
     }
-    
+
     return 0;
 }
 
@@ -280,7 +280,7 @@ static inline int sev_unwatch_lua( lua_State *L, const char *mt,
                                    sentry_ev_t **ev )
 {
     sentry_ev_t *e = luaL_checkudata( L, 1, mt );
-    
+
     if( lstate_isref( e->ref ) )
     {
         struct kevent evt = e->reg;

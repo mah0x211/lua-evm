@@ -2,10 +2,10 @@
  *  Copyright (C) 2016 Masatoshi Teruya
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a
- *  copy of this software and associated documentation files (the "Software"), 
- *  to deal in the Software without restriction, including without limitation 
- *  the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- *  and/or sell copies of the Software, and to permit persons to whom the 
+ *  copy of this software and associated documentation files (the "Software"),
+ *  to deal in the Software without restriction, including without limitation
+ *  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ *  and/or sell copies of the Software, and to permit persons to whom the
  *  Software is furnished to do so, subject to the following conditions:
  *
  *  The above copyright notice and this permission notice shall be included in
@@ -15,8 +15,8 @@
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
  *  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- *  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ *  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  *  DEALINGS IN THE SOFTWARE.
  *
  *  event.c
@@ -37,7 +37,7 @@ static int asfd_lua( lua_State *L, fd_initializer proc, const char *mt )
     int ctx = LUA_NOREF;
     int oneshot = 0;
     int edge = 0;
-    
+
     // check arguments
     if( argc > 5 ){
         argc = 5;
@@ -68,7 +68,7 @@ static int asfd_lua( lua_State *L, fd_initializer proc, const char *mt )
             }
         break;
     }
-    
+
     // set out-event
     if( proc( e, fd, oneshot, edge ) == 0 ){
         e->ctx = ctx;
@@ -78,7 +78,7 @@ static int asfd_lua( lua_State *L, fd_initializer proc, const char *mt )
         e->ref = lstate_ref( L );
         return 0;
     }
-    
+
     // got error
     lstate_unref( L, ctx );
     lua_pushstring( L, strerror( errno ) );
@@ -107,14 +107,14 @@ static int assignal_lua( lua_State *L )
     int ctx = LUA_NOREF;
     int oneshot = 0;
     sigset_t ss;
-    
+
     // check arguments
     if( argc > 4 ){
         argc = 4;
     }
-    
+
     sigemptyset( &ss );
-    
+
     switch( argc ){
         case 4:
             // arg#4 oneshot
@@ -144,7 +144,7 @@ static int assignal_lua( lua_State *L )
         e->ref = lstate_ref( L );
         return 0;
     }
-    
+
     // got error
     lstate_unref( L, ctx );
     lua_pushstring( L, strerror( errno ) );
@@ -160,7 +160,7 @@ static int astimer_lua( lua_State *L )
     double timeout = luaL_checknumber( L, 2 );
     int ctx = LUA_NOREF;
     int oneshot = 0;
-    
+
     // check arguments
     if( argc > 4 ){
         argc = 4;
@@ -184,7 +184,7 @@ static int astimer_lua( lua_State *L )
             }
         break;
     }
-    
+
     // create timer-event
     if( sev_astimer( e, timeout, oneshot ) == 0 ){
         e->ctx = ctx;
@@ -194,7 +194,7 @@ static int astimer_lua( lua_State *L )
         e->ref = lstate_ref( L );
         return 0;
     }
-    
+
     // got error
     lstate_unref( L, ctx );
     lua_pushstring( L, strerror( errno ) );
@@ -231,9 +231,9 @@ LUALIB_API int luaopen_sentry_event( lua_State *L )
         { "aswritable", aswritable_lua },
         { NULL, NULL }
     };
-    
+
     sentry_define_mt( L, SENTRY_EVENT_MT, mmethod, method );
-    
+
     return 0;
 }
 

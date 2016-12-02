@@ -2,10 +2,10 @@
  *  Copyright (C) 2015 Masatoshi Teruya
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a
- *  copy of this software and associated documentation files (the "Software"), 
- *  to deal in the Software without restriction, including without limitation 
- *  the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- *  and/or sell copies of the Software, and to permit persons to whom the 
+ *  copy of this software and associated documentation files (the "Software"),
+ *  to deal in the Software without restriction, including without limitation
+ *  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ *  and/or sell copies of the Software, and to permit persons to whom the
  *  Software is furnished to do so, subject to the following conditions:
  *
  *  The above copyright notice and this permission notice shall be included in
@@ -15,8 +15,8 @@
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
  *  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- *  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ *  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  *  DEALINGS IN THE SOFTWARE.
  *
  *  epoll/sentry_event.h
@@ -54,7 +54,7 @@ CHECK_NEXT:
         if( !( e = (sentry_ev_t*)fdismember( &s->fds, evt->data.fd ) ) ){
             goto CHECK_NEXT;
         }
-        
+
         e->evt = *evt;
         delflg = (e->reg.events & EPOLLONESHOT) |
                  (e->evt.events & (EPOLLRDHUP|EPOLLHUP|EPOLLERR));
@@ -72,7 +72,7 @@ CHECK_NEXT:
                 read( evt->data.fd, drain, sizeof( uint64_t ) );
             break;
         }
-        
+
         // remove from kernel event
         if( delflg ){
 DELETE_EVENT:
@@ -81,7 +81,7 @@ DELETE_EVENT:
             fddelset( &e->s->fds, e->reg.data.fd );
         }
     }
-    
+
     return e;
 }
 
@@ -96,7 +96,7 @@ static inline int sentry_register( sentry_ev_t *e )
         e->s->nreg++;
         return 0;
     }
-    
+
     return -1;
 }
 
@@ -129,7 +129,7 @@ static inline int sev_asfd( sentry_ev_t *e, int fd, int oneshot, int edge,
             return -1;
         }
     }
-    
+
     // set event fields
     e->ident = fd;
     e->filter = filter;
@@ -142,7 +142,7 @@ static inline int sev_asfd( sentry_ev_t *e, int fd, int oneshot, int edge,
     if( evt.data.fd != fd ){
         close( evt.data.fd );
     }
-    
+
     return -1;
 }
 
@@ -173,7 +173,7 @@ static inline int sev_assignal( sentry_ev_t *e, int signo, int oneshot )
         // init sigset with signo
         sigemptyset( &ss );
         sigaddset( &ss, signo );
-        
+
         // create event and signalfd with sigset_t
         if( ( fd = signalfd( -1, &ss, SFD_NONBLOCK|SFD_CLOEXEC ) ) != -1 )
         {
@@ -192,7 +192,7 @@ static inline int sev_assignal( sentry_ev_t *e, int signo, int oneshot )
             close( fd );
         }
     }
-    
+
     return -1;
 }
 
@@ -201,16 +201,16 @@ static inline int sev_astimer( sentry_ev_t *e, double timeout, int oneshot )
 {
     // create timerfd
     int fd = timerfd_create( CLOCK_MONOTONIC, TFD_NONBLOCK|TFD_CLOEXEC );
-    
+
     if( fd )
     {
         struct itimerspec its;
-        
+
         // convert double to interval-timespec
         sentry_dbl2timespec( timeout, &its.it_interval );
         // set first invocation time
         its.it_value = its.it_interval;
-        
+
         // set event fields
         e->ident = (uintptr_t)timeout;
         e->filter = EVFILT_TIMER;
@@ -222,11 +222,11 @@ static inline int sev_astimer( sentry_ev_t *e, double timeout, int oneshot )
             sentry_register( e ) == 0 ){
             return 0;
         }
-        
+
         // close fd
         close( fd );
     }
-    
+
     return -1;
 }
 
@@ -258,7 +258,7 @@ static inline int sev_typeof_lua( lua_State *L, const char *mt )
     sentry_ev_t *e = luaL_checkudata( L, 1, mt );
 
     lua_pushinteger( L, sev_type( e ) );
-    
+
     return 1;
 }
 
@@ -271,7 +271,7 @@ static inline int sev_context_lua( lua_State *L, const char *mt )
         lstate_pushref( L, e->ctx );
         return 1;
     }
-    
+
     return 0;
 }
 
@@ -280,7 +280,7 @@ static inline int sev_watch_lua( lua_State *L, const char *mt,
                                  sentry_ev_t **ev )
 {
     sentry_ev_t *e = luaL_checkudata( L, 1, mt );
-    
+
     if( !lstate_isref( e->ref ) )
     {
         // register event
@@ -290,16 +290,16 @@ static inline int sev_watch_lua( lua_State *L, const char *mt,
             lua_pushstring( L, strerror( errno ) );
             return 2;
         }
-        
+
         // retain event
         e->ref = lstate_ref( L );
         if( ev ){
             *ev = e;
         }
     }
-    
+
     lua_pushboolean( L, 1 );
-    
+
     return 1;
 }
 
@@ -308,7 +308,7 @@ static inline int sev_unwatch_lua( lua_State *L, const char *mt,
                                    sentry_ev_t **ev )
 {
     sentry_ev_t *e = luaL_checkudata( L, 1, mt );
-    
+
     if( lstate_isref( e->ref ) ){
         struct epoll_event evt = e->reg;
 
@@ -324,7 +324,7 @@ static inline int sev_unwatch_lua( lua_State *L, const char *mt,
     }
 
     lua_pushboolean( L, 1 );
-    
+
     return 1;
 }
 

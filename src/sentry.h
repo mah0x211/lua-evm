@@ -2,10 +2,10 @@
  *  Copyright (C) 2015 Masatoshi Teruya
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a
- *  copy of this software and associated documentation files (the "Software"), 
- *  to deal in the Software without restriction, including without limitation 
- *  the rights to use, copy, modify, merge, publish, distribute, sublicense, 
- *  and/or sell copies of the Software, and to permit persons to whom the 
+ *  copy of this software and associated documentation files (the "Software"),
+ *  to deal in the Software without restriction, including without limitation
+ *  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ *  and/or sell copies of the Software, and to permit persons to whom the
  *  Software is furnished to do so, subject to the following conditions:
  *
  *  The above copyright notice and this permission notice shall be included in
@@ -15,8 +15,8 @@
  *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
  *  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- *  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ *  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  *  DEALINGS IN THE SOFTWARE.
  *
  *  sentry.h
@@ -155,12 +155,12 @@ LUALIB_API int luaopen_sentry_signal( lua_State *L );
 // helper functions
 
 // module definition register
-static inline int sentry_define_mt( lua_State *L, const char *tname, 
-                             struct luaL_Reg mmethod[], 
+static inline int sentry_define_mt( lua_State *L, const char *tname,
+                             struct luaL_Reg mmethod[],
                              struct luaL_Reg method[] )
 {
     struct luaL_Reg *ptr = mmethod;
-    
+
     // create table __metatable
     luaL_newmetatable( L, tname );
     // metamethods
@@ -168,7 +168,7 @@ static inline int sentry_define_mt( lua_State *L, const char *tname,
         lstate_fn2tbl( L, ptr->name, ptr->func );
         ptr++;
     }
-    
+
     // methods
     ptr = method;
     lua_pushstring( L, "__index" );
@@ -195,14 +195,14 @@ static inline int sentry_increase_evs( sentry_t *s, uint8_t incr )
     else if( ( s->nreg + incr ) > s->nbuf )
     {
         kevt_t *evs = prealloc( (size_t)s->nreg + incr, kevt_t, s->evs );
-        
+
         if( !evs ){
             return -1;
         }
         s->nbuf = s->nreg + incr;
         s->evs = evs;
     }
-    
+
     return 0;
 }
 
@@ -210,11 +210,11 @@ static inline int sentry_increase_evs( sentry_t *s, uint8_t incr )
 static inline int sentry_retain_context( lua_State *L, int idx )
 {
     int ctx = lstate_refat( L, idx );
-    
+
     if( ctx == LUA_REFNIL ){
         return luaL_argerror( L, idx, "could not retain a context" );
     }
-    
+
     return ctx;
 }
 
@@ -222,7 +222,7 @@ static inline int sentry_retain_context( lua_State *L, int idx )
 static inline void sentry_dbl2timespec( double tval, struct timespec *ts )
 {
     double sec = 0, nsec = 0;
-    
+
     nsec = modf( tval, &sec );
     ts->tv_sec = (time_t)sec;
     ts->tv_nsec = (long)(nsec * 1000000000);
@@ -251,7 +251,7 @@ static inline int sev_type( sentry_ev_t *e )
 
         case EVFILT_SIGNAL:
             return SENTRY_EV_SIGNAL;
-        
+
         // unknown event
         default:
             return -1;
