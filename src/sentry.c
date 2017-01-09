@@ -34,8 +34,8 @@ static int DEFAULT_SENTRY = LUA_NOREF;
 static int wait_lua( lua_State *L )
 {
     sentry_t *s = luaL_checkudata( L, 1, SENTRY_MT );
-    // default timeout: 1 sec
-    int timeout = (int)luaL_optinteger( L, 2, -1 );
+    // default timeout: -1(never timeout)
+    lua_Integer timeout = luaL_optinteger( L, 2, -1 );
     sentry_ev_t *e = NULL;
     int isdel = 0;
 

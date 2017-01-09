@@ -32,10 +32,9 @@
 #include "sentry.h"
 
 
-static inline int sentry_wait( sentry_t *s, int timeout )
+static inline int sentry_wait( sentry_t *s, lua_Integer timeout )
 {
-    return epoll_wait( s->fd, s->evs, s->nreg,
-                       ( timeout < 0 ) ? -1 : timeout * 1000 );
+    return epoll_wait( s->fd, s->evs, s->nreg, timeout );
 }
 
 

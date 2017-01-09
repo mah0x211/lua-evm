@@ -31,14 +31,19 @@
 #include "sentry.h"
 
 
-static inline int sentry_wait( sentry_t *s, int timeout )
+static inline int sentry_wait( sentry_t *s, lua_Integer timeout )
 {
-    struct timespec ts = {
-        timeout, 0
-    };
-    struct timespec *tsp = ( timeout < 0 ) ? NULL : &ts;
+    if( timeout > -1 )
+    {
+        struct timespec ts = {
+            .tv_sec = timeout / 1000,
+            .tv_nsec = ( timeout % 1000 ) * 1000000
+        };
 
-    return kevent( s->fd, NULL, 0, s->evs, (int)s->nreg, tsp );
+        return kevent( s->fd, NULL, 0, s->evs, (int)s->nreg, &ts );
+    }
+
+    return kevent( s->fd, NULL, 0, s->evs, (int)s->nreg, NULL );
 }
 
 
