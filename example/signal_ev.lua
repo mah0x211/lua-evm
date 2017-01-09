@@ -30,7 +30,7 @@
 local sentry = require('sentry');
 -- https://github.com/mah0x211/lua-signal
 local signal = require('signal');
-local waitsec = 2;
+local waitsec = 2000;
 local nrep = 0;
 local oneshot = false;
 local s = assert( sentry.default() );

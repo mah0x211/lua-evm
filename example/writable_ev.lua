@@ -28,7 +28,7 @@
 --]]
 
 local sentry = require('sentry');
-local waitsec = 2;
+local waitsec = 2000;
 local nrep = 0;
 local oneshot = false;
 local edgeTrigger = true;
