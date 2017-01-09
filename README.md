@@ -79,14 +79,14 @@ returns the table that has new [empty event object(s)](#empty-event-object-metho
 
 
 
-### nevt, err = s:wait( [timeout:int] )
+### nevt, err = s:wait( [timeout:lua_Integer] )
 
 wait until event occurring.
 
 
 **Parameters**
 
-- `timeout:int`: wait until specified timeout seconds. `default: -1(never-timeout)`
+- `timeout:lua_Integer`: wait until specified timeout milliseconds. `default: -1(never-timeout)`
 
 
 **Returns**
