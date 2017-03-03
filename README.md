@@ -119,7 +119,7 @@ to use the event object as a timer event.
 
 **Parameters**
 
-- `timeout:number`: timeout seconds.
+- `timeout:number`: timeout milliseconds.
 - `ctx:any`: context object.
 - `oneshot:boolean`: automatically unregister this event when event occurred.
 
