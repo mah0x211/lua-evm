@@ -192,7 +192,8 @@ static inline int sev_assignal( sentry_ev_t *e, int signo, int oneshot )
 }
 
 
-static inline int sev_astimer( sentry_ev_t *e, double timeout, int oneshot )
+static inline int sev_astimer( sentry_ev_t *e, lua_Integer timeout,
+                               int oneshot )
 {
     // set event fields
     EV_SET(
@@ -201,7 +202,7 @@ static inline int sev_astimer( sentry_ev_t *e, double timeout, int oneshot )
         EVFILT_TIMER,
         EV_ADD|( oneshot ? EV_ONESHOT : 0 ),
         NOTE_NSECONDS,
-        (intptr_t)(timeout * 1000000000.0),
+        (intptr_t)(timeout * 1000000LL),
         (void*)e
     );
 

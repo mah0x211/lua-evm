@@ -196,7 +196,8 @@ static inline int sev_assignal( sentry_ev_t *e, int signo, int oneshot )
 }
 
 
-static inline int sev_astimer( sentry_ev_t *e, double timeout, int oneshot )
+static inline int sev_astimer( sentry_ev_t *e, lua_Integer timeout,
+                               int oneshot )
 {
     // create timerfd
     int fd = timerfd_create( CLOCK_MONOTONIC, TFD_NONBLOCK|TFD_CLOEXEC );
@@ -205,8 +206,11 @@ static inline int sev_astimer( sentry_ev_t *e, double timeout, int oneshot )
     {
         struct itimerspec its;
 
-        // convert double to interval-timespec
-        sentry_dbl2timespec( timeout, &its.it_interval );
+        // convert msec to interval-timespec
+        its.it_interval = (struct timespec){
+            .tv_sec = (time_t)timeout / 1000,
+            .tv_nsec = (long)( ( timeout % 1000 ) * 1000000 )
+        };
         // set first invocation time
         its.it_value = its.it_interval;
 

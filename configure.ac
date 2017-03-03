@@ -43,7 +43,7 @@ AC_CHECK_TYPES([ int8_t, int16_t, int32_t, int64_t,
 #
 AC_CHECK_FUNCS(
     [ malloc calloc realloc memcpy free sigemptyset sigaddset sigismember \
-      printf close read modf ],,
+      printf close read ],,
     AC_MSG_FAILURE([required function not found])
 )
 

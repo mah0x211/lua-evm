@@ -157,7 +157,7 @@ static int astimer_lua( lua_State *L )
 {
     int argc = lua_gettop( L );
     sentry_ev_t *e = luaL_checkudata( L, 1, SENTRY_EVENT_MT );
-    double timeout = luaL_checknumber( L, 2 );
+    lua_Integer timeout = luaL_checkinteger( L, 2 );
     int ctx = LUA_NOREF;
     int oneshot = 0;
 
@@ -180,7 +180,9 @@ static int astimer_lua( lua_State *L )
         case 2:
             // arg#2 timeout
             if( timeout <= 0 ){
-                return luaL_argerror( L, 2, "timeout must be larger than 0 sec" );
+                return luaL_argerror(
+                    L, 2, "timeout must be greater than or equal to 0 msec"
+                );
             }
         break;
     }

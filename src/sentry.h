@@ -219,16 +219,6 @@ static inline int sentry_retain_context( lua_State *L, int idx )
 }
 
 
-static inline void sentry_dbl2timespec( double tval, struct timespec *ts )
-{
-    double sec = 0, nsec = 0;
-
-    nsec = modf( tval, &sec );
-    ts->tv_sec = (time_t)sec;
-    ts->tv_nsec = (long)(nsec * 1000000000);
-}
-
-
 enum {
     SENTRY_EV_READABLE = 1,
     SENTRY_EV_WRITABLE,
