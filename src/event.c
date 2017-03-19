@@ -106,14 +106,11 @@ static int assignal_lua( lua_State *L )
     int signo = (int)luaL_checkinteger( L, 2 );
     int ctx = LUA_NOREF;
     int oneshot = 0;
-    sigset_t ss;
 
     // check arguments
     if( argc > 4 ){
         argc = 4;
     }
-
-    sigemptyset( &ss );
 
     switch( argc ){
         case 4:
@@ -129,7 +126,7 @@ static int assignal_lua( lua_State *L )
             }
         case 2:
             // arg#2 signo
-            if( sigaddset( &ss, signo ) != 0 ){
+            if( signo <= 0 || signo >= NSIG ){
                 return luaL_argerror( L, 2, "invalid signal number" );
             }
         break;
