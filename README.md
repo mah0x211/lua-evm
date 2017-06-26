@@ -182,6 +182,20 @@ revert to an empty event object.
 - `ev:userdata`: empty event object.
 
 
+### ok, err = ev:alter( s )
+
+alter used sentry.
+
+**Parameters**
+
+- `s:userdata`: sentry object.
+
+**Returns**
+
+- `ok:boolean`: true on success, or false on failure.
+- `err:string`: error string.
+
+
 ### id = ev:ident()
 
 returns an event ident.
