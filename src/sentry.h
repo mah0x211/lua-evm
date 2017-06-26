@@ -184,46 +184,6 @@ static inline int sentry_retain_context( lua_State *L, int idx )
 }
 
 
-enum {
-    SENTRY_EV_READABLE = 1,
-    SENTRY_EV_WRITABLE,
-    SENTRY_EV_TIMER,
-    SENTRY_EV_SIGNAL
-};
-
-
-static inline int sev_type( sentry_ev_t *e )
-{
-    switch( sev_filter( e ) ){
-        case EVFILT_READ:
-            return SENTRY_EV_READABLE;
-
-        case EVFILT_WRITE:
-            return SENTRY_EV_WRITABLE;
-
-        case EVFILT_TIMER:
-            return SENTRY_EV_TIMER;
-
-        case EVFILT_SIGNAL:
-            return SENTRY_EV_SIGNAL;
-
-        // unknown event
-        default:
-            return -1;
-    }
-}
-
-
-static inline int sev_typeof_lua( lua_State *L, const char *mt )
-{
-    sentry_ev_t *e = luaL_checkudata( L, 1, mt );
-
-    lua_pushinteger( L, sev_type( e ) );
-
-    return 1;
-}
-
-
 static inline int sev_asa_lua( lua_State *L, const char *mt )
 {
     sentry_ev_t *e = luaL_checkudata( L, 1, mt );

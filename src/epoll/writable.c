@@ -52,12 +52,6 @@ static int asa_lua( lua_State *L )
 }
 
 
-static int typeof_lua( lua_State *L )
-{
-    return sev_typeof_lua( L, SENTRY_WRITABLE_MT );
-}
-
-
 static int ident_lua( lua_State *L )
 {
     return sev_ident_lua( L, SENTRY_WRITABLE_MT );
@@ -88,7 +82,6 @@ LUALIB_API int luaopen_sentry_writable( lua_State *L )
     struct luaL_Reg method[] = {
         { "revert", revert_lua },
         { "ident", ident_lua },
-        { "typeof", typeof_lua },
         { "asa", asa_lua },
         { "context", context_lua },
         { "watch", watch_lua },

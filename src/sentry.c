@@ -320,12 +320,6 @@ LUALIB_API int luaopen_sentry( lua_State *L )
     lua_newtable( L );
     lauxh_pushfn2tbl( L, "new", new_lua );
     lauxh_pushfn2tbl( L, "default", default_lua );
-    // add event type
-    lauxh_pushnum2tbl( L, "EV_NONE", -1 );
-    lauxh_pushnum2tbl( L, "EV_READABLE", SENTRY_EV_READABLE );
-    lauxh_pushnum2tbl( L, "EV_WRITABLE", SENTRY_EV_WRITABLE );
-    lauxh_pushnum2tbl( L, "EV_TIMER", SENTRY_EV_TIMER );
-    lauxh_pushnum2tbl( L, "EV_SIGNAL", SENTRY_EV_SIGNAL );
 
     return 1;
 }

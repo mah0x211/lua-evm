@@ -74,12 +74,6 @@ static int asa_lua( lua_State *L )
 }
 
 
-static int typeof_lua( lua_State *L )
-{
-    return sev_typeof_lua( L, SENTRY_SIGNAL_MT );
-}
-
-
 static int revert_lua( lua_State *L )
 {
     unwatch_lua( L );
@@ -105,7 +99,6 @@ LUALIB_API int luaopen_sentry_signal( lua_State *L )
     struct luaL_Reg method[] = {
         { "revert", revert_lua },
         { "ident", ident_lua },
-        { "typeof", typeof_lua },
         { "asa", asa_lua },
         { "context", context_lua },
         { "watch", watch_lua },
