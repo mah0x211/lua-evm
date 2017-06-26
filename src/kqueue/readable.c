@@ -56,12 +56,6 @@ static int watch_lua( lua_State *L )
 }
 
 
-static int ident_lua( lua_State *L )
-{
-    return sev_ident_lua( L, SENTRY_READABLE_MT );
-}
-
-
 static int context_lua( lua_State *L )
 {
     return sev_context_lua( L, SENTRY_READABLE_MT );
@@ -71,6 +65,12 @@ static int context_lua( lua_State *L )
 static int asa_lua( lua_State *L )
 {
     return sev_asa_lua( L, SENTRY_READABLE_MT );
+}
+
+
+static int ident_lua( lua_State *L )
+{
+    return sev_ident_lua( L, SENTRY_READABLE_MT );
 }
 
 

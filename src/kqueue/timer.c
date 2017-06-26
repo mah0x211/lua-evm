@@ -40,16 +40,6 @@ static int watch_lua( lua_State *L )
 }
 
 
-static int ident_lua( lua_State *L )
-{
-    sentry_ev_t *e = luaL_checkudata( L, 1, SENTRY_TIMER_MT );
-
-    lua_pushnumber( L, e->reg.data / 1000000000.0 );
-
-    return 1;
-}
-
-
 static int context_lua( lua_State *L )
 {
     return sev_context_lua( L, SENTRY_TIMER_MT );
@@ -59,6 +49,16 @@ static int context_lua( lua_State *L )
 static int asa_lua( lua_State *L )
 {
     return sev_asa_lua( L, SENTRY_TIMER_MT );
+}
+
+
+static int ident_lua( lua_State *L )
+{
+    sentry_ev_t *e = luaL_checkudata( L, 1, SENTRY_TIMER_MT );
+
+    lua_pushnumber( L, e->reg.data / 1000000000.0 );
+
+    return 1;
 }
 
 
