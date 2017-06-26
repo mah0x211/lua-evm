@@ -27,7 +27,7 @@ for _, v in ipairs({ str, num, int, tbl, fn, co }) do
 end
 
 -- oneshot
-ifNotNil( e:astimer( 1, ctx, true ) );
+ifNotNil( e:astimer( 1000, ctx, true ) );
 -- verify type
 ifNotTrue( e:typeof() == sentry.EV_TIMER, 'invalid implements' );
 
@@ -64,7 +64,7 @@ ifNotNil( ev, 'invalid implements' );
 
 
 -- repeatable
-ifNotNil( e:astimer( 1, ctx, false ) );
+ifNotNil( e:astimer( 1000, ctx, false ) );
 
 -- verify repeatable
 nrep = 0;
