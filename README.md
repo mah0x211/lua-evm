@@ -195,6 +195,16 @@ returns an event ident.
     - `fd:int` if readable or writable event.
 
 
+### asa = ev:asa()
+
+returns an event type.
+
+
+**Returns**
+
+- `asa:string`: `astimer`, `assignal`, `asreadable` or `aswritable`.
+
+
 ### ctx = ev:context()
 
 returns a context object.
