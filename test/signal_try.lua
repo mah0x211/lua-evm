@@ -47,7 +47,7 @@ end
 -- oneshot
 ifNotNil( e:assignal( SIGINT, ctx, true ) );
 -- verify type
-ifNotTrue( e:typeof() == sentry.EV_SIGNAL, 'invalid implements' );
+ifNotTrue( e:asa() == 'assignal', 'invalid implements' );
 
 -- verify oneshot
 signal.raise( SIGINT );
@@ -57,12 +57,10 @@ nevt = s:wait(-1);
 ifNotEqual( nevt, 1 );
 
 -- verify return values
-ev, etype, ishup = s:getevent();
+ev, ectx = s:getevent();
 ifNotEqual( e, ev );
-ifNotEqual( etype, sentry.EV_SIGNAL );
-ifNotEqual( ev:typeof(), etype );
-ifTrue( ishup, 'invalid implements' );
-ifNotEqual( ev:context(), ctx );
+ifNotEqual( ectx, ctx );
+ifNotEqual( ev:context(), ectx );
 
 -- verify registration
 ifNotEqual( #s, 0 );
@@ -74,7 +72,7 @@ ifNotEqual( #s, 0 );
 ifNotEqual( ev:revert(), e );
 
 -- get next event
-ev, etype, ishup = s:getevent();
+ev = s:getevent();
 ifNotNil( ev, 'invalid implements' );
 
 
@@ -90,18 +88,16 @@ repeat
     ifNotEqual( nevt, 1 );
 
     -- verify return values
-    ev, etype, ishup = s:getevent();
+    ev, ectx = s:getevent();
     ifNotEqual( e, ev );
-    ifNotEqual( etype, sentry.EV_SIGNAL );
-    ifNotEqual( ev:typeof(), etype );
-    ifTrue( ishup, 'invalid implements' );
-    ifNotEqual( ev:context(), ctx );
+    ifNotEqual( ectx, ctx );
+    ifNotEqual( ev:context(), ectx );
     nrep = nrep + 1;
     if nrep < 3 then
         -- verify registration
         ifNotEqual( #s, 1 );
         -- get next event
-        ev, etype, ishup = s:getevent();
+        ev = s:getevent();
         ifNotNil( ev, 'invalid implements' );
         signal.raise( SIGINT );
     else

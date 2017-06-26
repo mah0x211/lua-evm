@@ -45,7 +45,7 @@ end
 -- oneshot
 ifNotNil( e:aswritable( fds[1]:fd(), ctx, true ) );
 -- verify type
-ifNotTrue( e:typeof() == sentry.EV_WRITABLE, 'invalid implements' );
+ifNotTrue( e:asa() == 'aswritable', 'invalid implements' );
 
 -- verify oneshot
 nevt = s:wait(-1);
@@ -54,12 +54,10 @@ nevt = s:wait(-1);
 ifNotEqual( nevt, 1 );
 
 -- verify return values
-ev, etype, ishup = s:getevent();
+ev, ectx = s:getevent();
 ifNotEqual( e, ev );
-ifNotEqual( etype, sentry.EV_WRITABLE );
-ifNotEqual( ev:typeof(), etype );
-ifTrue( ishup, 'invalid implements' );
-ifNotEqual( ev:context(), ctx );
+ifNotEqual( ectx, ctx );
+ifNotEqual( ev:context(), ectx );
 
 -- verify registration
 ifNotEqual( #s, 0 );
@@ -71,7 +69,7 @@ ifNotEqual( #s, 0 );
 ifNotEqual( ev:revert(), e );
 
 -- get next event
-ev, etype, ishup = s:getevent();
+ev = s:getevent();
 ifNotNil( ev, 'invalid implements' );
 
 
@@ -86,12 +84,10 @@ repeat
     ifNotEqual( nevt, 1 );
 
     -- verify return values
-    ev, etype, ishup = s:getevent();
+    ev, ectx = s:getevent();
     ifNotEqual( e, ev );
-    ifNotEqual( etype, sentry.EV_WRITABLE );
-    ifNotEqual( ev:typeof(), etype );
-    ifTrue( ishup, 'invalid implements' );
-    ifNotEqual( ev:context(), ctx );
+    ifNotEqual( ectx, ctx );
+    ifNotEqual( ev:context(), ectx );
 
     nrep = nrep + 1;
     if nrep == 1 then
@@ -135,15 +131,13 @@ repeat
         ifNotEqual( #s, 1 );
 
         -- verify event
-        ev, etype, ishup = s:getevent();
+        ev, ectx = s:getevent();
         ifNotEqual( e, ev );
-        ifNotEqual( etype, sentry.EV_WRITABLE );
-        ifNotEqual( ev:typeof(), etype );
-        ifTrue( ishup, 'invalid implements' );
-        ifNotEqual( ev:context(), ctx );
+        ifNotEqual( ectx, ctx );
+        ifNotEqual( ev:context(), ectx );
 
         -- get next event
-        ev, etype, ishup = s:getevent();
+        ev = s:getevent();
         ifNotNil( ev, 'invalid implements' );
 
         -- set timer
@@ -156,12 +150,10 @@ repeat
         ifNotEqual( #s, 2 );
 
         -- verify event
-        ev, etype, ishup = s:getevent();
+        ev, ectx = s:getevent();
         ifNotEqual( timer, ev );
-        ifNotEqual( etype, sentry.EV_TIMER );
-        ifNotEqual( ev:typeof(), etype );
-        ifTrue( ishup, 'invalid implements' );
-        ifNotEqual( ev:context(), ctx );
+        ifNotEqual( ectx, ctx );
+        ifNotEqual( ev:context(), ectx );
 
         -- verify registration
         ifNotEqual( #s, 1 );
