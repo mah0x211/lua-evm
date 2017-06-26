@@ -1,5 +1,5 @@
 --[[
-  
+
   Copyright (C) 2015 Masatoshi Teruya
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,7 +24,7 @@
   lua-sentry
 
   Created by Masatoshi Teruya on 15/08/25.
-  
+
 --]]
 
 local sentry = require('sentry');
@@ -35,19 +35,19 @@ local sec = 2;
 local s = assert( sentry.default() );
 local e = assert( s:newevent() );
 local err = e:astimer( sec, nil, oneshot );
-local nevt, ev, etype, ishup;
+local nevt, ev;
 
 if err then
     error( err );
 end
 
-print( 'event type', e:typeof(), sentry.EV_TIMER );
+print( 'event type', e:asa(), 'astimer' );
 
 repeat
     print( 'wait #' .. #s );
     nevt = assert( s:wait( waitsec ) );
     print( 'got number of event', nevt );
-    ev, etype, ishup = s:getevent();
+    ev = s:getevent();
     while ev do
         nrep = nrep + 1;
         assert( e == ev, 'invalid implements' );
@@ -56,7 +56,7 @@ repeat
             print( 'rewatch', assert( ev:watch() ) );
         end
         -- get next event
-        ev, etype, ishup = s:getevent();
+        ev = s:getevent();
     end
 until #s == 0;
 

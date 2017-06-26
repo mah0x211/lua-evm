@@ -19,7 +19,7 @@ local function echoClose( req )
         req.evs[1]:revert();
         req.evs[2]:revert();
     end
-    
+
     req.sock:close();
     NCONN = NCONN - 1;
     print( 'connection ', NCONN );
@@ -80,7 +80,7 @@ local function echoRecv( req )
         pushSendQ( req, msg );
     else
         local len;
-        
+
         len, err, again = req.sock:send( msg );
         if not len then
             if err then
@@ -94,41 +94,37 @@ local function echoRecv( req )
 end
 
 
-local function acceptClient( s, server, ishup )
-    if ishup then
-        error( 'server socket has been closed' );
+local function acceptClient( s, server )
+    local sock, err, again = server:accept();
+
+    if again then
+        print( 'accept again' );
+    elseif err then
+        print( 'failed to accept', err );
     else
-        local sock, err, again = server:accept();
-        
-        if again then
-            print( 'accept again' );
-        elseif err then
-            print( 'failed to accept', err );
+        local req = {
+            s = s,
+            sock = sock,
+            msgq = {},
+            qhead = 1,
+            qtail = 0;
+        };
+
+        NCONN = NCONN + 1;
+        --sock:sndbuf( 5 );
+        -- create read/write event
+        req.evs, err = s:newevents( 2 );
+        if not err then
+            err = req.evs[1]:asreadable( sock:fd(), req ) or
+                  req.evs[2]:aswritable( sock:fd(), req, NOONESHOT, EDGE );
+        end
+
+        -- got error
+        if err then
+            print( 'failed to register read/write event', sock, err );
+            echoClose( req );
         else
-            local req = {
-                s = s,
-                sock = sock,
-                msgq = {},
-                qhead = 1,
-                qtail = 0;
-            };
-
-            NCONN = NCONN + 1;
-            --sock:sndbuf( 5 );
-            -- create read/write event
-            req.evs, err = s:newevents( 2 );
-            if not err then
-                err = req.evs[1]:asreadable( sock:fd(), req ) or
-                      req.evs[2]:aswritable( sock:fd(), req, NOONESHOT, EDGE );
-            end
-
-            -- got error
-            if err then
-                print( 'failed to register read/write event', sock, err );
-                echoClose( req );
-            else
-                print( 'connection', NCONN );
-            end
+            print( 'connection', NCONN );
         end
     end
 end
@@ -139,7 +135,7 @@ local function createServer()
     local s = assert( sentry.default() );
     -- create bind socket
     local addrs = assert( getaddrinfoInet( HOST, PORT, SOCK_STREAM ) );
-    local server, sev, ev, nevt, ishup, ctx, err;
+    local server, sev, ev, nevt, ctx, err;
 
     for _, addr in ipairs( addrs ) do
         server, err = socket.new( addr, NONBLOCK );
@@ -165,7 +161,7 @@ local function createServer()
 
     -- run
     print( 'start server: ', HOST, PORT );
-    
+
     -- event-loop
     repeat
         nevt, err = s:wait(-1);
@@ -176,23 +172,21 @@ local function createServer()
             print( 'no event' );
         else
             --print('got event', nevt );
-            ev, etype, ishup, ctx = s:getevent();
+            ev, ctx = s:getevent();
             while ev do
-                --print('got event', nevt, ishup, ev, ctx );
+                --print('got event', nevt, ev, ctx );
                 if ev == sev then
-                    acceptClient( s, server, ishup );
-                elseif ishup then
-                    echoClose( ctx );
+                    acceptClient( s, server );
                 elseif ctx.evs[1] == ev then
                     echoRecv( ctx );
                 else
                     echoSendQ( ctx );
                 end
-                ev, etype, ishup, ctx = s:getevent();
+                ev, ctx = s:getevent();
             end
         end
     until #s == 0;
-    
+
     print( 'end server' );
 end
 
