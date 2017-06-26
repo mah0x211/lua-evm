@@ -257,11 +257,11 @@ static inline int sev_ident_lua( lua_State *L, const char *mt )
 
 
 static inline int sev_watch_lua( lua_State *L, const char *mt,
-                                sentry_ev_t **ev )
+                                 sentry_ev_t **ev )
 {
     sentry_ev_t *e = luaL_checkudata( L, 1, mt );
 
-    if( !lstate_isref( e->ref ) )
+    if( !lauxh_isref( e->ref ) )
     {
         // register event
         if( sentry_register( e ) != 0 ){
@@ -272,7 +272,7 @@ static inline int sev_watch_lua( lua_State *L, const char *mt,
         }
 
         // retain event
-        e->ref = lstate_ref( L );
+        e->ref = lauxh_ref( L );
         if( ev ){
             *ev = e;
         }
@@ -289,7 +289,7 @@ static inline int sev_unwatch_lua( lua_State *L, const char *mt,
 {
     sentry_ev_t *e = luaL_checkudata( L, 1, mt );
 
-    if( lstate_isref( e->ref ) ){
+    if( lauxh_isref( e->ref ) ){
         struct epoll_event evt = e->reg;
 
         // del fd from fdset
@@ -297,7 +297,7 @@ static inline int sev_unwatch_lua( lua_State *L, const char *mt,
         // unregister event
         epoll_ctl( e->s->fd, EPOLL_CTL_DEL, e->reg.data.fd, &evt );
         e->s->nreg--;
-        e->ref = lstate_unref( L, e->ref );
+        e->ref = lauxh_unref( L, e->ref );
         if( ev ){
             *ev = e;
         }

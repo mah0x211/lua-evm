@@ -33,7 +33,7 @@ int sev_gc_lua( lua_State *L )
     sentry_ev_t *e = lua_touserdata( L, 1 );
 
     // release context
-    lstate_unref( L, e->ctx );
+    lauxh_unref( L, e->ctx );
 
     return 0;
 }

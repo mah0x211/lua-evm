@@ -237,7 +237,7 @@ static inline int sev_watch_lua( lua_State *L, const char *mt,
 {
     sentry_ev_t *e = luaL_checkudata( L, 1, mt );
 
-    if( !lstate_isref( e->ref ) )
+    if( !lauxh_isref( e->ref ) )
     {
         // register event
         if( sentry_register( e ) != 0 ){
@@ -248,7 +248,7 @@ static inline int sev_watch_lua( lua_State *L, const char *mt,
         }
 
         // retain event
-        e->ref = lstate_ref( L );
+        e->ref = lauxh_ref( L );
         if( ev ){
             *ev = e;
         }
@@ -265,7 +265,7 @@ static inline int sev_unwatch_lua( lua_State *L, const char *mt,
 {
     sentry_ev_t *e = luaL_checkudata( L, 1, mt );
 
-    if( lstate_isref( e->ref ) )
+    if( lauxh_isref( e->ref ) )
     {
         struct kevent evt = e->reg;
 
@@ -273,7 +273,7 @@ static inline int sev_unwatch_lua( lua_State *L, const char *mt,
         evt.flags = EV_DELETE;
         kevent( e->s->fd, &evt, 1, NULL, 0, NULL );
         e->s->nreg--;
-        e->ref = lstate_unref( L, e->ref );
+        e->ref = lauxh_unref( L, e->ref );
         if( ev ){
             *ev = e;
         }

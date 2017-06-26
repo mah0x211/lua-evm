@@ -33,7 +33,7 @@ static int asfd_lua( lua_State *L, fd_initializer proc, const char *mt )
 {
     int argc = lua_gettop( L );
     sentry_ev_t *e = luaL_checkudata( L, 1, SENTRY_EVENT_MT );
-    int fd = (int)luaL_checkinteger( L, 2 );
+    int fd = (int)lauxh_checkinteger( L, 2 );
     int ctx = LUA_NOREF;
     int oneshot = 0;
     int edge = 0;
@@ -74,13 +74,13 @@ static int asfd_lua( lua_State *L, fd_initializer proc, const char *mt )
         e->ctx = ctx;
         lua_settop( L, 1 );
         // set metatable
-        lstate_setmetatable( L, mt );
-        e->ref = lstate_ref( L );
+        lauxh_setmetatable( L, mt );
+        e->ref = lauxh_ref( L );
         return 0;
     }
 
     // got error
-    lstate_unref( L, ctx );
+    lauxh_unref( L, ctx );
     lua_pushstring( L, strerror( errno ) );
 
     return 1;
@@ -103,7 +103,7 @@ static int assignal_lua( lua_State *L )
 {
     int argc = lua_gettop( L );
     sentry_ev_t *e = luaL_checkudata( L, 1, SENTRY_EVENT_MT );
-    int signo = (int)luaL_checkinteger( L, 2 );
+    int signo = (int)lauxh_checkinteger( L, 2 );
     int ctx = LUA_NOREF;
     int oneshot = 0;
 
@@ -137,13 +137,13 @@ static int assignal_lua( lua_State *L )
         e->ctx = ctx;
         lua_settop( L, 1 );
         // set signal metatable
-        lstate_setmetatable( L, SENTRY_SIGNAL_MT );
-        e->ref = lstate_ref( L );
+        lauxh_setmetatable( L, SENTRY_SIGNAL_MT );
+        e->ref = lauxh_ref( L );
         return 0;
     }
 
     // got error
-    lstate_unref( L, ctx );
+    lauxh_unref( L, ctx );
     lua_pushstring( L, strerror( errno ) );
 
     return 1;
@@ -154,7 +154,7 @@ static int astimer_lua( lua_State *L )
 {
     int argc = lua_gettop( L );
     sentry_ev_t *e = luaL_checkudata( L, 1, SENTRY_EVENT_MT );
-    lua_Integer timeout = luaL_checkinteger( L, 2 );
+    lua_Integer timeout = lauxh_checkinteger( L, 2 );
     int ctx = LUA_NOREF;
     int oneshot = 0;
 
@@ -189,13 +189,13 @@ static int astimer_lua( lua_State *L )
         e->ctx = ctx;
         lua_settop( L, 1 );
         // set timer metatable
-        lstate_setmetatable( L, SENTRY_TIMER_MT );
-        e->ref = lstate_ref( L );
+        lauxh_setmetatable( L, SENTRY_TIMER_MT );
+        e->ref = lauxh_ref( L );
         return 0;
     }
 
     // got error
-    lstate_unref( L, ctx );
+    lauxh_unref( L, ctx );
     lua_pushstring( L, strerror( errno ) );
 
     return 1;

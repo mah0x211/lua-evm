@@ -38,6 +38,8 @@
 // lualib
 #include <lauxlib.h>
 #include <lualib.h>
+
+#include "lauxhlib.h"
 // sentry headers
 #include "config.h"
 #include "sentry_types.h"
@@ -91,43 +93,6 @@ struct sentry_st {
 
 
 // helper macros for lua_State
-#define lstate_setmetatable(L,tname) \
-    (luaL_getmetatable(L,tname),lua_setmetatable(L,-2))
-
-#define lstate_ref(L) \
-    luaL_ref(L,LUA_REGISTRYINDEX)
-
-#define lstate_refat(L,idx) \
-    (lua_pushvalue(L,idx),luaL_ref(L,LUA_REGISTRYINDEX))
-
-#define lstate_isref(ref) \
-    ((ref) >= 0)
-
-#define lstate_pushref(L,ref) \
-    lua_rawgeti( L, LUA_REGISTRYINDEX, ref )
-
-#define lstate_unref(L,ref) \
-    (luaL_unref( L, LUA_REGISTRYINDEX, ref ),LUA_NOREF)
-
-#define lstate_fn2tbl(L,k,v) do{ \
-    lua_pushstring(L,k); \
-    lua_pushcfunction(L,v); \
-    lua_rawset(L,-3); \
-}while(0)
-
-#define lstate_str2tbl(L,k,v) do{ \
-    lua_pushstring(L,k); \
-    lua_pushstring(L,v); \
-    lua_rawset(L,-3); \
-}while(0)
-
-#define lstate_num2tbl(L,k,v) do{ \
-    lua_pushstring(L,k); \
-    lua_pushnumber(L,v); \
-    lua_rawset(L,-3); \
-}while(0)
-
-
 #define TOSTRING_MT(L,tname) ({ \
     lua_pushfstring( L, tname ": %p", lua_touserdata( L, 1 ) ); \
     1; \
@@ -156,8 +121,8 @@ LUALIB_API int luaopen_sentry_signal( lua_State *L );
 
 // module definition register
 static inline int sentry_define_mt( lua_State *L, const char *tname,
-                             struct luaL_Reg mmethod[],
-                             struct luaL_Reg method[] )
+                                    struct luaL_Reg mmethod[],
+                                    struct luaL_Reg method[] )
 {
     struct luaL_Reg *ptr = mmethod;
 
@@ -165,7 +130,7 @@ static inline int sentry_define_mt( lua_State *L, const char *tname,
     luaL_newmetatable( L, tname );
     // metamethods
     while( ptr->name ){
-        lstate_fn2tbl( L, ptr->name, ptr->func );
+        lauxh_pushfn2tbl( L, ptr->name, ptr->func );
         ptr++;
     }
 
@@ -174,7 +139,7 @@ static inline int sentry_define_mt( lua_State *L, const char *tname,
     lua_pushstring( L, "__index" );
     lua_newtable( L );
     while( ptr->name ){
-        lstate_fn2tbl( L, ptr->name, ptr->func );
+        lauxh_pushfn2tbl( L, ptr->name, ptr->func );
         ptr++;
     }
     lua_rawset( L, -3 );
@@ -209,7 +174,7 @@ static inline int sentry_increase_evs( sentry_t *s, uint8_t incr )
 
 static inline int sentry_retain_context( lua_State *L, int idx )
 {
-    int ctx = lstate_refat( L, idx );
+    int ctx = lauxh_refat( L, idx );
 
     if( ctx == LUA_REFNIL ){
         return luaL_argerror( L, idx, "could not retain a context" );
@@ -292,8 +257,8 @@ static inline int sev_context_lua( lua_State *L, const char *mt )
 {
     sentry_ev_t *e = luaL_checkudata( L, 1, mt );
 
-    if( lstate_isref( e->ctx ) ){
-        lstate_pushref( L, e->ctx );
+    if( lauxh_isref( e->ctx ) ){
+        lauxh_pushref( L, e->ctx );
         return 1;
     }
 
@@ -305,7 +270,7 @@ static inline int sev_revert_lua( lua_State *L )
 {
     lua_settop( L, 1 );
     // set event metatable
-    lstate_setmetatable( L, SENTRY_EVENT_MT );
+    lauxh_setmetatable( L, SENTRY_EVENT_MT );
 
     return 1;
 }

@@ -35,7 +35,7 @@ static int wait_lua( lua_State *L )
 {
     sentry_t *s = luaL_checkudata( L, 1, SENTRY_MT );
     // default timeout: -1(never timeout)
-    lua_Integer timeout = luaL_optinteger( L, 2, -1 );
+    lua_Integer timeout = lauxh_optinteger( L, 2, -1 );
     sentry_ev_t *e = NULL;
     int isdel = 0;
 
@@ -45,7 +45,7 @@ static int wait_lua( lua_State *L )
     {
         if( isdel ){
             isdel = 0;
-            e->ref = lstate_unref( L, e->ref );
+            e->ref = lauxh_unref( L, e->ref );
             s->nreg--;
         }
     }
@@ -87,12 +87,12 @@ static int getevent_lua( lua_State *L )
     // return event, isdel and context
     if( e )
     {
-        lstate_pushref( L, e->ref );
+        lauxh_pushref( L, e->ref );
         lua_pushinteger( L, sev_type( e ) );
         lua_pushboolean( L, sev_is_hup( e ) );
         // push context if retained
-        if( lstate_isref( e->ctx ) ){
-            lstate_pushref( L, e->ctx );
+        if( lauxh_isref( e->ctx ) ){
+            lauxh_pushref( L, e->ctx );
         }
         else{
             lua_pushnil( L );
@@ -101,7 +101,7 @@ static int getevent_lua( lua_State *L )
         // release reference if deleted
         if( isdel ){
             lua_pushboolean( L, isdel );
-            e->ref = lstate_unref( L, e->ref );
+            e->ref = lauxh_unref( L, e->ref );
             s->nreg--;
             return 5;
         }
@@ -124,7 +124,7 @@ static inline int allocevent( lua_State *L, sentry_t *s )
         e->ctx = LUA_NOREF;
         e->ref = LUA_NOREF;
         // set metatable
-        lstate_setmetatable( L, SENTRY_EVENT_MT );
+        lauxh_setmetatable( L, SENTRY_EVENT_MT );
         return 1;
     }
 
@@ -140,7 +140,7 @@ static inline int allocevent( lua_State *L, sentry_t *s )
 static int newevents_lua( lua_State *L )
 {
     sentry_t *s = luaL_checkudata( L, 1, SENTRY_MT );
-    int nevt = (int)luaL_optinteger( L, 2, 1 );
+    int nevt = (int)lauxh_optinteger( L, 2, 1 );
 
     if( nevt < 1 ){
         errno = EINVAL;
@@ -220,7 +220,7 @@ static int new_lua( lua_State *L )
     // arg#1 number of event buffer size
     if( !lua_isnoneornil( L, 1 ) )
     {
-        nbuf = (int)luaL_checkinteger( L, 1 );
+        nbuf = (int)lauxh_checkinteger( L, 1 );
         if( nbuf < 1 || nbuf > INT_MAX ){
             return luaL_error(
                 L, "event buffer value range must be 1 to %d", INT_MAX
@@ -236,7 +236,7 @@ static int new_lua( lua_State *L )
         {
             // create event descriptor
             if( ( s->fd = sentry_createfd() ) != -1 ){
-                lstate_setmetatable( L, SENTRY_MT );
+                lauxh_setmetatable( L, SENTRY_MT );
                 s->nbuf = nbuf;
                 s->nreg = 0;
                 s->nevt = 0;
@@ -260,9 +260,9 @@ static int new_lua( lua_State *L )
 // create default sentry
 static int default_lua( lua_State *L )
 {
-    if( lstate_isref( DEFAULT_SENTRY ) )
+    if( lauxh_isref( DEFAULT_SENTRY ) )
     {
-        lstate_pushref( L, DEFAULT_SENTRY );
+        lauxh_pushref( L, DEFAULT_SENTRY );
         // return current default sentry
         if( SENTRY_PID == getpid() ){
             return 1;
@@ -276,14 +276,14 @@ static int default_lua( lua_State *L )
             // invalid value
             s->fd = -1;
             // release reference
-            DEFAULT_SENTRY = lstate_unref( L, DEFAULT_SENTRY );
+            DEFAULT_SENTRY = lauxh_unref( L, DEFAULT_SENTRY );
             lua_pop( L, 1 );
         }
     }
 
     switch( new_lua( L ) ){
         case 1:
-            DEFAULT_SENTRY = lstate_refat( L, -1 );
+            DEFAULT_SENTRY = lauxh_refat( L, -1 );
             SENTRY_PID = getpid();
             return 1;
 
@@ -320,14 +320,14 @@ LUALIB_API int luaopen_sentry( lua_State *L )
     sentry_define_mt( L, SENTRY_MT, mmethod, method );
     // create table
     lua_newtable( L );
-    lstate_fn2tbl( L, "new", new_lua );
-    lstate_fn2tbl( L, "default", default_lua );
+    lauxh_pushfn2tbl( L, "new", new_lua );
+    lauxh_pushfn2tbl( L, "default", default_lua );
     // add event type
-    lstate_num2tbl( L, "EV_NONE", -1 );
-    lstate_num2tbl( L, "EV_READABLE", SENTRY_EV_READABLE );
-    lstate_num2tbl( L, "EV_WRITABLE", SENTRY_EV_WRITABLE );
-    lstate_num2tbl( L, "EV_TIMER", SENTRY_EV_TIMER );
-    lstate_num2tbl( L, "EV_SIGNAL", SENTRY_EV_SIGNAL );
+    lauxh_pushnum2tbl( L, "EV_NONE", -1 );
+    lauxh_pushnum2tbl( L, "EV_READABLE", SENTRY_EV_READABLE );
+    lauxh_pushnum2tbl( L, "EV_WRITABLE", SENTRY_EV_WRITABLE );
+    lauxh_pushnum2tbl( L, "EV_TIMER", SENTRY_EV_TIMER );
+    lauxh_pushnum2tbl( L, "EV_SIGNAL", SENTRY_EV_SIGNAL );
 
     return 1;
 }

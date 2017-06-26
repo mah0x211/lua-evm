@@ -1,7 +1,7 @@
 package = "sentry"
 version = "scm-1"
 source = {
-    url = "git://github.com/mah0x211/lua-sentry.git"
+    url = "gitrec://github.com/mah0x211/lua-sentry.git"
 }
 description = {
     summary = "kqueue/epoll event module",
@@ -10,7 +10,8 @@ description = {
     maintainer = "Masatoshi Teruya"
 }
 dependencies = {
-    "lua >= 5.1"
+    "lua >= 5.1",
+    "luarocks-fetch-gitrec >= 0.2"
 }
 build = {
     type = "command",

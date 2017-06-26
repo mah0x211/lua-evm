@@ -36,8 +36,8 @@ int sev_gc_lua( lua_State *L )
     close( e->reg.data.fd );
 
     // release context
-    if( lstate_isref( e->ctx ) ){
-        lstate_unref( L, e->ctx );
+    if( lauxh_isref( e->ctx ) ){
+        lauxh_unref( L, e->ctx );
     }
 
     return 0;
@@ -54,8 +54,8 @@ int sev_rwgc_lua( lua_State *L )
     }
 
     // release context
-    if( lstate_isref( e->ctx ) ){
-        lstate_unref( L, e->ctx );
+    if( lauxh_isref( e->ctx ) ){
+        lauxh_unref( L, e->ctx );
     }
 
     return 0;
