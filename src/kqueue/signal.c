@@ -74,6 +74,19 @@ static int asa_lua( lua_State *L )
 }
 
 
+static int alter_lua( lua_State *L )
+{
+    sentry_ev_t *e = luaL_checkudata( L, 1, SENTRY_SIGNAL_MT );
+    sentry_t *s = luaL_checkudata( L, 2, SENTRY_MT );
+
+    unwatch_lua( L );
+    e->s = s;
+    lua_settop( L, 1 );
+
+    return watch_lua( L );
+}
+
+
 static int revert_lua( lua_State *L )
 {
     unwatch_lua( L );
@@ -98,6 +111,7 @@ LUALIB_API int luaopen_sentry_signal( lua_State *L )
     };
     struct luaL_Reg method[] = {
         { "revert", revert_lua },
+        { "alter", alter_lua },
         { "ident", ident_lua },
         { "asa", asa_lua },
         { "context", context_lua },
