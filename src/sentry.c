@@ -267,7 +267,7 @@ static int default_lua( lua_State *L )
         }
         // create new default sentry
         else {
-            sentry_t *s = luaL_checkudata( L, 1, SENTRY_MT );
+            sentry_t *s = luaL_checkudata( L, -1, SENTRY_MT );
 
             // should close event descriptor
             close( s->fd );
