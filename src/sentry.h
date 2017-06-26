@@ -249,5 +249,34 @@ static inline int sev_type( sentry_ev_t *e )
 }
 
 
+static inline int sev_asa_lua( lua_State *L, const char *mt )
+{
+    sentry_ev_t *e = luaL_checkudata( L, 1, mt );
+
+    switch( sev_filter( e ) ){
+        case EVFILT_READ:
+            lua_pushliteral( L, "asreadable" );
+            return 1;
+
+        case EVFILT_WRITE:
+            lua_pushliteral( L, "aswritable" );
+            return 1;
+
+        case EVFILT_TIMER:
+            lua_pushliteral( L, "astimer" );
+            return 1;
+
+        case EVFILT_SIGNAL:
+            lua_pushliteral( L, "assignal" );
+            return 1;
+
+            // unknown event
+        default:
+            lua_pushnil( L );
+            return 1;
+    }
+}
+
+
 #endif
 

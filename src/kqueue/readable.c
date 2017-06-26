@@ -68,6 +68,12 @@ static int context_lua( lua_State *L )
 }
 
 
+static int asa_lua( lua_State *L )
+{
+    return sev_asa_lua( L, SENTRY_READABLE_MT );
+}
+
+
 static int typeof_lua( lua_State *L )
 {
     return sev_typeof_lua( L, SENTRY_READABLE_MT );
@@ -99,6 +105,7 @@ LUALIB_API int luaopen_sentry_readable( lua_State *L )
         { "revert", revert_lua },
         { "ident", ident_lua },
         { "typeof", typeof_lua },
+        { "asa", asa_lua },
         { "context", context_lua },
         { "watch", watch_lua },
         { "unwatch", unwatch_lua },
