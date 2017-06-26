@@ -88,8 +88,6 @@ static int getevent_lua( lua_State *L )
     if( e )
     {
         lauxh_pushref( L, e->ref );
-        lua_pushinteger( L, sev_type( e ) );
-        lua_pushboolean( L, sev_is_hup( e ) );
         // push context if retained
         if( lauxh_isref( e->ctx ) ){
             lauxh_pushref( L, e->ctx );
@@ -103,10 +101,10 @@ static int getevent_lua( lua_State *L )
             lua_pushboolean( L, isdel );
             e->ref = lauxh_unref( L, e->ref );
             s->nreg--;
-            return 5;
+            return 3;
         }
 
-        return 4;
+        return 2;
     }
 
     return 0;
