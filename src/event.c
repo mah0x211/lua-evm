@@ -209,6 +209,8 @@ static int alter_lua( lua_State *L )
     sentry_t *s = luaL_checkudata( L, 2, SENTRY_MT );
 
     e->s = s;
+    lua_settop( L, 0 );
+    lua_pushboolean( L, 1 );
 
     return 1;
 }
