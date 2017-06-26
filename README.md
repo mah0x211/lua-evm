@@ -14,13 +14,6 @@ luarocks install sentry --from=http://mah0x211.github.io/rocks/
 
 ## Constants
 
-**Event Types**
-
-- `sentry.EV_READABLE` readable event.
-- `sentry.EV_WRITABLE` writable event.
-- `sentry.EV_TIMER` timer event.
-- `sentry.EV_SIGNAL` signal event.
-
 
 ## Creating a Sentry Object
 
@@ -95,7 +88,7 @@ wait until event occurring.
 - `err:string`: error string.
 
 
-### ev, evtype, ishup, ctx, disabled = s:getevent()
+### ev, ctx, disabled = s:getevent()
 
 returns an event object.
 
@@ -103,8 +96,6 @@ returns an event object.
 **Returns**
 
 - `ev:userdata`: event object or nil.
-- `evtype:int`: event type.
-- `ishup:boolean`: if true, event was aborted(hang-up).
 - `ctx:any`: context object.
 - `disabled:boolean`: if true, event is disabled.
 
@@ -202,20 +193,6 @@ returns an event ident.
     - `timeout:number` if timer event.
     - `signo:int` if signal event.
     - `fd:int` if readable or writable event.
-
-
-### evtype = ev:typeof()
-
-returns an event type.
-
-
-**Returns**
-
-- `evtype:int`: following type.
-    - `EV_READABLE` readable event.
-    - `EV_WRITABLE` writable event.
-    - `EV_TIMER` timer event.
-    - `EV_SIGNAL` signal event.
 
 
 ### ctx = ev:context()
