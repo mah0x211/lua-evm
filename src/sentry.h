@@ -249,6 +249,16 @@ static inline int sev_type( sentry_ev_t *e )
 }
 
 
+static inline int sev_typeof_lua( lua_State *L, const char *mt )
+{
+    sentry_ev_t *e = luaL_checkudata( L, 1, mt );
+
+    lua_pushinteger( L, sev_type( e ) );
+
+    return 1;
+}
+
+
 static inline int sev_asa_lua( lua_State *L, const char *mt )
 {
     sentry_ev_t *e = luaL_checkudata( L, 1, mt );
@@ -276,6 +286,33 @@ static inline int sev_asa_lua( lua_State *L, const char *mt )
             return 1;
     }
 }
+
+
+static inline int sev_context_lua( lua_State *L, const char *mt )
+{
+    sentry_ev_t *e = luaL_checkudata( L, 1, mt );
+
+    if( lstate_isref( e->ctx ) ){
+        lstate_pushref( L, e->ctx );
+        return 1;
+    }
+
+    return 0;
+}
+
+
+static inline int sev_revert_lua( lua_State *L )
+{
+    lua_settop( L, 1 );
+    // set event metatable
+    lstate_setmetatable( L, SENTRY_EVENT_MT );
+
+    return 1;
+}
+
+
+// implemented at <epoll or kqueue>/common.c
+int sev_gc_lua( lua_State *L );
 
 
 #endif

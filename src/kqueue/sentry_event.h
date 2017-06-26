@@ -232,43 +232,21 @@ static inline int sev_ident_lua( lua_State *L, const char *mt )
 }
 
 
-static inline int sev_typeof_lua( lua_State *L, const char *mt )
-{
-    sentry_ev_t *e = luaL_checkudata( L, 1, mt );
-
-    lua_pushinteger( L, sev_type( e ) );
-
-    return 1;
-}
-
-
-static inline int sev_context_lua( lua_State *L, const char *mt )
-{
-    sentry_ev_t *e = luaL_checkudata( L, 1, mt );
-
-    if( lstate_isref( e->ctx ) ){
-        lstate_pushref( L, e->ctx );
-        return 1;
-    }
-
-    return 0;
-}
-
-
 static inline int sev_watch_lua( lua_State *L, const char *mt,
-                                 sentry_ev_t **ev )
+                                sentry_ev_t **ev )
 {
-    sentry_ev_t *e = luaL_checkudata( (L), 1, (mt) );
+    sentry_ev_t *e = luaL_checkudata( L, 1, mt );
 
     if( !lstate_isref( e->ref ) )
     {
         // register event
         if( sentry_register( e ) != 0 ){
             // got error
-            lua_pushboolean( (L), 0 );
-            lua_pushstring( (L), strerror( errno ) );
+            lua_pushboolean( L, 0 );
+            lua_pushstring( L, strerror( errno ) );
             return 2;
         }
+
         // retain event
         e->ref = lstate_ref( L );
         if( ev ){
@@ -306,18 +284,5 @@ static inline int sev_unwatch_lua( lua_State *L, const char *mt,
     return 1;
 }
 
-
-static inline int sev_revert_lua( lua_State *L )
-{
-    lua_settop( L, 1 );
-    // set event metatable
-    lstate_setmetatable( L, SENTRY_EVENT_MT );
-
-    return 1;
-}
-
-
-// implemented at kqueue/common.c
-int sev_gc_lua( lua_State *L );
 
 #endif
