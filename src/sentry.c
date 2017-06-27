@@ -177,6 +177,31 @@ static int newevent_lua( lua_State *L )
 }
 
 
+static int renew_lua( lua_State *L )
+{
+    sentry_t *s = luaL_checkudata( L, 1, SENTRY_MT );
+    int fd = sentry_createfd();
+
+    if( fd != -1 )
+    {
+        // close unused descriptor
+        if( s->fd != fd ){
+            close( s->fd );
+        }
+        s->fd = fd;
+        lua_pushboolean( L, 1 );
+
+        return 1;
+    }
+
+    // got error
+    lua_pushboolean( L, 0 );
+    lua_pushstring( L, strerror( errno ) );
+
+    return 2;
+}
+
+
 static int len_lua( lua_State *L )
 {
     sentry_t *s = luaL_checkudata( L, 1, SENTRY_MT );
@@ -300,6 +325,7 @@ LUALIB_API int luaopen_sentry( lua_State *L )
         { NULL, NULL }
     };
     struct luaL_Reg method[] = {
+        { "renew", renew_lua },
         { "newevent", newevent_lua },
         { "newevents", newevents_lua },
         { "getevent", getevent_lua },
