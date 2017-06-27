@@ -203,13 +203,15 @@ static int astimer_lua( lua_State *L )
 
 
 // common method
-static int alter_lua( lua_State *L )
+static int renew_lua( lua_State *L )
 {
     sentry_ev_t *e = luaL_checkudata( L, 1, SENTRY_EVENT_MT );
-    sentry_t *s = luaL_checkudata( L, 2, SENTRY_MT );
+    sentry_t *s = lauxh_optudata( L, 2, SENTRY_MT, NULL );
 
-    e->s = s;
     lua_settop( L, 0 );
+    if( s ){
+        e->s = s;
+    }
     lua_pushboolean( L, 1 );
 
     return 1;
@@ -237,7 +239,7 @@ LUALIB_API int luaopen_sentry_event( lua_State *L )
     };
     struct luaL_Reg method[] = {
         { "revert", revert_lua },
-        { "alter", alter_lua },
+        { "renew", renew_lua },
         { "astimer", astimer_lua },
         { "assignal", assignal_lua },
         { "asreadable", asreadable_lua },

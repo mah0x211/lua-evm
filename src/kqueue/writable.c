@@ -74,14 +74,16 @@ static int ident_lua( lua_State *L )
 }
 
 
-static int alter_lua( lua_State *L )
+static int renew_lua( lua_State *L )
 {
     sentry_ev_t *e = luaL_checkudata( L, 1, SENTRY_WRITABLE_MT );
-    sentry_t *s = luaL_checkudata( L, 2, SENTRY_MT );
+    sentry_t *s = lauxh_optudata( L, 2, SENTRY_MT, NULL );
 
-    unwatch_lua( L );
-    e->s = s;
     lua_settop( L, 1 );
+    unwatch_lua( L );
+    if( s ){
+        e->s = s;
+    }
 
     return watch_lua( L );
 }
@@ -110,7 +112,7 @@ LUALIB_API int luaopen_sentry_writable( lua_State *L )
     };
     struct luaL_Reg method[] = {
         { "revert", revert_lua },
-        { "alter", alter_lua },
+        { "renew", renew_lua },
         { "ident", ident_lua },
         { "asa", asa_lua },
         { "context", context_lua },
