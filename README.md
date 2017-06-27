@@ -47,6 +47,17 @@ returns the default sentry object.
 ## Sentry Methods
 
 
+### ok, err = s:renew()
+
+renew(recreate) the internal event descriptor.
+
+
+**Returns**
+
+- `ok:boolean`: true on success, or false on failure.
+- `err:string`: error string.
+
+
 ### ev, err = s:newevent();
 
 returns the new [empty event object](#empty-event-object-methods).
@@ -182,9 +193,9 @@ revert to an empty event object.
 - `ev:userdata`: empty event object.
 
 
-### ok, err = ev:alter( s )
+### ok, err = ev:renew( [s] )
 
-alter used sentry.
+renew(rewatch) an event object.
 
 **Parameters**
 
