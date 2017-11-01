@@ -248,6 +248,7 @@ static inline int sev_watch_lua( lua_State *L, const char *mt,
         }
 
         // retain event
+        lua_settop( L, 1 );
         e->ref = lauxh_ref( L );
         if( ev ){
             *ev = e;
