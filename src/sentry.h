@@ -216,13 +216,38 @@ static inline int sev_asa_lua( lua_State *L, const char *mt )
 static inline int sev_context_lua( lua_State *L, const char *mt )
 {
     sentry_ev_t *e = luaL_checkudata( L, 1, mt );
+    int ctx = LUA_NOREF;
 
-    if( lauxh_isref( e->ctx ) ){
-        lauxh_pushref( L, e->ctx );
-        return 1;
+    // check passed argument
+    if( lua_gettop( L ) > 1 )
+    {
+        // evaluate as nil
+        if( lua_isnoneornil( L, 2 ) ){
+            lua_settop( L, 0 );
+            ctx = LUA_REFNIL;
+        }
+        else {
+            lua_settop( L, 2 );
+            ctx = sentry_retain_context( L, 2 );
+        }
     }
 
-    return 0;
+    if( lauxh_isref( e->ctx ) )
+    {
+        lauxh_pushref( L, e->ctx );
+        // replace current context with passed argument
+        if( ctx != LUA_NOREF ){
+            lauxh_unref( L, e->ctx );
+            e->ctx = ctx;
+        }
+    }
+    // replace current context with passed argument
+    else {
+        lua_pushnil( L );
+        e->ctx = ctx;
+    }
+
+    return 1;
 }
 
 
