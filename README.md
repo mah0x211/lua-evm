@@ -230,9 +230,17 @@ returns an event type.
 - `asa:string`: `astimer`, `assignal`, `asreadable` or `aswritable`.
 
 
-### ctx = ev:context()
+### ctx = ev:context( [ctx:any] )
 
-returns a context object.
+returns a current context object, and if argument passed then replace that object to passed argument.
+
+**Parameters**
+
+- `ctx:any`: context object.
+
+**Returns**
+
+- `ctx:any`: current context object.
 
 
 ### ev:unwatch()
