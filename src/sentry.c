@@ -111,27 +111,17 @@ static int getevent_lua( lua_State *L )
 }
 
 
-static inline int allocevent( lua_State *L, sentry_t *s )
+static inline void allocevent( lua_State *L, sentry_t *s )
 {
     sentry_ev_t *e = lua_newuserdata( L, sizeof( sentry_ev_t ) );
 
-    if( e ){
-        // clear
-        memset( (void*)e, 0, sizeof( sentry_ev_t ) );
-        e->s = s;
-        e->ctx = LUA_NOREF;
-        e->ref = LUA_NOREF;
-        // set metatable
-        lauxh_setmetatable( L, SENTRY_EVENT_MT );
-        return 1;
-    }
-
-    // got error
-    lua_settop( L, 0 );
-    lua_pushnil( L );
-    lua_pushstring( L, strerror( errno ) );
-
-    return 2;
+    // clear
+    memset( (void*)e, 0, sizeof( sentry_ev_t ) );
+    e->s = s;
+    e->ctx = LUA_NOREF;
+    e->ref = LUA_NOREF;
+    // set metatable
+    lauxh_setmetatable( L, SENTRY_EVENT_MT );
 }
 
 
@@ -140,30 +130,23 @@ static int newevents_lua( lua_State *L )
     sentry_t *s = luaL_checkudata( L, 1, SENTRY_MT );
     int nevt = (int)lauxh_optinteger( L, 2, 1 );
 
-    if( nevt < 1 ){
-        errno = EINVAL;
-    }
-    else
+    if( nevt > 0 )
     {
         int i = 0;
 
         lua_settop( L, 0 );
         lua_createtable( L, nevt, 0 );
-        for(; i < nevt; i++ )
-        {
-            if( allocevent( L, s ) != 1 ){
-                return 2;
-            }
+        for(; i < nevt; i++ ){
+            allocevent( L, s );
             lua_rawseti( L, -2, i + 1 );
         }
 
         return 1;
     }
 
-    // got error
     lua_settop( L, 0 );
     lua_pushnil( L );
-    lua_pushstring( L, strerror( errno ) );
+    lua_pushstring( L, strerror( EINVAL ) );
 
     return 2;
 }
@@ -173,7 +156,8 @@ static int newevent_lua( lua_State *L )
 {
     sentry_t *s = luaL_checkudata( L, 1, SENTRY_MT );
 
-    return allocevent( L, s );
+    allocevent( L, s );
+    return 1;
 }
 
 
@@ -252,8 +236,8 @@ static int new_lua( lua_State *L )
     }
 
     // create and init sentry_t
-    if( ( s = lua_newuserdata( L, sizeof( sentry_t ) ) ) &&
-        ( s->evs = pnalloc( (size_t)nbuf, kevt_t ) ) )
+    s = lua_newuserdata( L, sizeof( sentry_t ) );
+    if( ( s->evs = pnalloc( (size_t)nbuf, kevt_t ) ) )
     {
         if( fdset_alloc( &s->fds, (size_t)nbuf ) == 0 )
         {
