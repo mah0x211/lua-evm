@@ -58,14 +58,13 @@ renew(recreate) the internal event descriptor.
 - `err:string`: error string.
 
 
-### ev, err = s:newevent();
+### ev = s:newevent();
 
 returns the new [empty event object](#empty-event-object-methods).
 
 **Returns**
 
-- `ev:userdata`: event object on success, or nil on failure.
-- `err:string`: error string.
+- `ev:userdata`: event object.
 
 
 ### evs, err = s:newevents( [nevt:int] );
