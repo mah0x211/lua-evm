@@ -1,8 +1,9 @@
 rockspec_format = "3.0"
 package = "sentry"
-version = "scm-1"
+version = "0.9.1-3"
 source = {
-    url = "git+https://github.com/mah0x211/lua-sentry.git"
+    url = "git+https://github.com/mah0x211/lua-sentry.git",
+    tag = "v0.9.1"
 }
 description = {
     summary = "kqueue/epoll event module",
