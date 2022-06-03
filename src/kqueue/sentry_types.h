@@ -1,4 +1,4 @@
-/**
+/*
  *  Copyright (C) 2015 Masatoshi Teruya
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a
@@ -19,32 +19,38 @@
  *  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  *  DEALINGS IN THE SOFTWARE.
  *
- *  kqueue/evm_types.h
+ *  kqueue/sentry_types.h
  *  lua-sentry
  *  Created by Masatoshi Teruya on 15/08/24.
  */
 
-#ifndef evm_kevent_types_h
-#define evm_kevent_types_h
+#ifndef SENTRY_KEVENT_TYPES_H
+#define SENTRY_KEVENT_TYPES_H
 
 #include <sys/event.h>
 
 // kernel event-loop fd creator
-#define evm_createfd() kqueue()
+#define sentry_createfd()   kqueue()
+
 
 // kernel event structure
-typedef struct kevent kevt_t;
+typedef struct kevent   kevt_t;
 
-typedef struct evm_st evm_t;
+typedef struct sentry_st sentry_t;
+
 
 typedef struct {
-    evm_t *s;
+    sentry_t *s;
     kevt_t reg;
     kevt_t evt;
     int ref;
     int ctx;
-} evm_ev_t;
+} sentry_ev_t;
 
-#define sev_filter(e) ((e)->reg.filter)
+
+#define sev_filter(e)   ((e)->reg.filter)
+
 
 #endif
+
+

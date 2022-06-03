@@ -1,209 +1,193 @@
-local evm = require('evm')
-local fork = require('fork')
-local assert = require('assert')
-local llsocket = require('llsocket')
-local NCONN = 0
+local inspect = require('util').inspect;
+local sentry = require('sentry');
+local lls = require('llsocket');
+local getaddrinfoInet = lls.inet.getaddrinfo;
+local socket = lls.socket;
+local SOCK_STREAM = lls.SOCK_STREAM;
+local HOST = '127.0.0.1';
+local PORT = '5000';
+local NOONESHOT = false;
+local EDGE = true;
+local NONBLOCK = true;
+local REUSEADDR = true;
+local NCONN = 0;
 
-local function close(req)
-    -- print('delete request', req.evr, req.evw)
+
+local function echoClose( req )
+    --print( 'delete request', req.evr, req.evw );
     if req.evs then
-        req.evs[1]:revert()
-        req.evs[2]:revert()
+        req.evs[1]:revert();
+        req.evs[2]:revert();
     end
 
-    req.sock:close()
-    NCONN = NCONN - 1
-    -- print('connection ', NCONN)
+    req.sock:close();
+    NCONN = NCONN - 1;
+    print( 'connection ', NCONN );
 end
 
-local function echo_sendq(req)
+
+local function echoSendQ( req )
+    --print( 'echo send ', req.qtail, req.qhead );
     if req.qtail >= req.qhead then
-        local sock = req.sock
-        local msgq, qhead, qtail = req.msgq, req.qhead, req.qtail
+        local sock = req.sock;
+        local msgq, qhead, qtail = req.msgq, req.qhead, req.qtail;
+        local len, err, again;
 
         for i = req.qhead, req.qtail do
-            local len, err, again = sock:send(msgq[i])
-            if err then
-                print('failed to send', err)
-                close(req)
-                return
+            len, err, again = sock:send( msgq[i] );
+
+            if not len then
+                if err then
+                    print( 'failed to send', err );
+                end
+                return echoClose( req );
             elseif again then
-                msgq[i] = msgq[i]:sub(len + 1)
-                break
+                msgq[i] = msgq[i]:sub( len + 1 );
+                break;
             end
 
-            qhead = i + 1
-            msgq[i] = nil
+            qhead = i + 1;
+            msgq[i] = nil;
         end
 
         if qhead > qtail then
-            print('rewind msgq')
-            req.qhead, req.qtail = 1, 0
+            print( 'rewind msgq' );
+            req.qhead, req.qtail = 1, 0;
         end
     end
 end
 
-local function push_sendq(req, msg)
-    req.qtail = req.qtail + 1
-    req.msgq[req.qtail] = msg
-    -- print('push to msgq', msg)
+
+local function pushSendQ( req, msg )
+    req.qtail = req.qtail + 1;
+    req.msgq[req.qtail] = msg;
+    print( 'push to msgq', msg );
 end
 
-local function echo_recv(req)
-    local msg, err, again = req.sock:recv()
+
+local function echoRecv( req )
+    local msg, err, again = req.sock:recv();
+
     if again then
-        return
+        print( 'recv again' );
+    -- close by peer
     elseif not msg then
         if err then
-            print('failed to recv', err)
+            print( 'failed to recv', err );
         end
-        close(req)
-        return
-    end
+        echoClose( req );
+    elseif req.qtail > 0 then
+        pushSendQ( req, msg );
+    else
+        local len;
 
-    -- message must be sent after queued messages have been sent
-    if req.qtail > 0 then
-        push_sendq(req, msg)
-        return
-    end
-
-    local len
-    len, err, again = req.sock:send(msg)
-    if err then
-        print('failed to send', err)
-        close(req)
-    elseif again then
-        push_sendq(req, msg:sub(len + 1))
+        len, err, again = req.sock:send( msg );
+        if not len then
+            if err then
+                print( 'failed to send', err );
+            end
+            echoClose( req );
+        elseif again then
+            pushSendQ( req, msg:sub( len + 1 ) );
+        end
     end
 end
 
-local function accept(server, m)
-    local sock, err, again = server:accept()
+
+local function acceptClient( s, server )
+    local sock, err, again = server:accept();
 
     if again then
-        -- print('accept again')
-        return
+        print( 'accept again' );
     elseif err then
-        print('failed to accept', err)
-        return
-    end
+        print( 'failed to accept', err );
+    else
+        local req = {
+            s = s,
+            sock = sock,
+            msgq = {},
+            qhead = 1,
+            qtail = 0;
+        };
 
-    -- create read and write events
-    local req = {
-        m = m,
-        sock = sock,
-        msgq = {},
-        qhead = 1,
-        qtail = 0,
-    }
-    req.evs, err = m:newevents(2)
-    if err then
-        print('failed to create read and write events:', err)
-        sock:close()
-        return
-    end
+        NCONN = NCONN + 1;
+        --sock:sndbuf( 5 );
+        -- create read/write event
+        req.evs, err = s:newevents( 2 );
+        if not err then
+            err = req.evs[1]:asreadable( sock:fd(), req ) or
+                  req.evs[2]:aswritable( sock:fd(), req, NOONESHOT, EDGE );
+        end
 
-    -- register read event
-    local evs = req.evs
-    err = evs[1]:asreadable(sock:fd(), req)
-    if err then
-        print('failed to register read event:', err)
-        sock:close()
+        -- got error
+        if err then
+            print( 'failed to register read/write event', sock, err );
+            echoClose( req );
+        else
+            print( 'connection', NCONN );
+        end
     end
-    -- register write event with edge triger
-    err = evs[2]:aswritable(sock:fd(), req, false, true)
-    if err then
-        evs[1]:revert()
-        print('failed to register write event:', err)
-        sock:close()
-    end
-
-    NCONN = NCONN + 1
-    -- print('connection', NCONN)
 end
 
-local function run_loop(server)
+
+local function createServer()
     -- create loop
-    local m = assert(evm.default())
-    -- register server fd
-    local sev = assert(m:newevent())
-    local err = sev:asreadable(server:fd())
-    if err then
-        error(err)
+    local s = assert( sentry.default() );
+    -- create bind socket
+    local addrs = assert( getaddrinfoInet( HOST, PORT, SOCK_STREAM ) );
+    local server, sev, ev, nevt, ctx, err;
+
+    for _, addr in ipairs( addrs ) do
+        server, err = socket.new( addr, NONBLOCK );
+        if server then
+            assert( server:reuseaddr( true ) );
+            err = server:bind();
+            if not err then
+                err = server:listen();
+            end
+            break;
+        end
     end
+
+    if err then
+        error( err );
+    end
+
+    sev = assert( s:newevent() );
+    err = sev:asreadable( server:fd() );
+    if err then
+        error( err );
+    end
+
+    -- run
+    print( 'start server: ', HOST, PORT );
 
     -- event-loop
-    while #m > 0 do
-        local nevt, werr = m:wait(-1)
+    repeat
+        nevt, err = s:wait(-1);
         if err then
-            print(werr)
-            return
+            print( err );
+            break;
         elseif nevt == 0 then
-            print('no event')
+            print( 'no event' );
         else
-            local ev, ctx = m:getevent()
+            --print('got event', nevt );
+            ev, ctx = s:getevent();
             while ev do
+                --print('got event', nevt, ev, ctx );
                 if ev == sev then
-                    -- server event
-                    accept(server, m)
+                    acceptClient( s, server );
                 elseif ctx.evs[1] == ev then
-                    echo_recv(ctx)
+                    echoRecv( ctx );
                 else
-                    echo_sendq(ctx)
+                    echoSendQ( ctx );
                 end
-                ev, ctx = m:getevent()
+                ev, ctx = s:getevent();
             end
         end
-    end
+    until #s == 0;
+
+    print( 'end server' );
 end
 
-local function echo_server()
-    local addrinfo = llsocket.addrinfo.inet('127.0.0.1', 5000,
-                                            llsocket.SOCK_STREAM,
-                                            llsocket.IPPROTO_TCP,
-                                            llsocket.AI_PASSIVE)
-    -- create a socket with O_NONBLOCK option
-    local server, err = llsocket.socket.new(addrinfo:family(),
-                                            addrinfo:socktype(),
-                                            addrinfo:protocol(), true)
-    if err then
-        error(err)
-    end
-    server:reuseaddr(true)
-    assert(server:bind(addrinfo))
-    assert(server:listen())
-
-    print('start server: ', addrinfo:addr() .. ':' .. addrinfo:port())
-
-    local worker = {}
-    for _ = 1, 8 do
-        local p = assert(fork())
-        if p:is_child() then
-            print('worker', p:pid())
-
-            local ok
-            ok, err = pcall(run_loop, server)
-            if not ok then
-                print(err)
-            end
-            os.exit()
-        end
-        worker[#worker + 1] = p
-    end
-    server:close()
-
-    while #worker > 0 do
-        local list = {}
-        for _, p in ipairs(worker) do
-            p:wait()
-            if p:pid() > 0 then
-                list[#list + 1] = p
-            end
-        end
-        worker = list
-    end
-
-    print('end server')
-end
-
-echo_server()
+createServer();

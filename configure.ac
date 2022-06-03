@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 #
 AC_PREREQ(2.61)
-AC_INIT(evm, scm)
+AC_INIT(sentry, scm)
 AM_INIT_AUTOMAKE([foreign no-dist no-installinfo no-installman -Wall])
 AC_CONFIG_HEADER([src/config.h])
 AC_CONFIG_MACRO_DIR([m4])
@@ -32,10 +32,10 @@ AC_CHECK_HEADERS(
 #
 # checking required types
 #
-AC_CHECK_TYPES([ int8_t, int16_t, int32_t, int64_t,
-                 uint8_t, uint16_t, uint32_t, uint64_t,
+AC_CHECK_TYPES([ int8_t, int16_t, int32_t, int64_t, 
+                 uint8_t, uint16_t, uint32_t, uint64_t, 
                  intptr_t, uintptr_t, ptrdiff_t,
-                 size_t, ssize_t, off_t,
+                 size_t, ssize_t, off_t, 
                  mode_t, pid_t, socklen_t, sigset_t, time_t ])
 
 #
@@ -50,7 +50,7 @@ AC_CHECK_FUNCS(
 #
 # checking kevent
 #
-AC_CHECK_HEADERS(
+AC_CHECK_HEADERS( 
     sys/event.h,
     [ AC_SUBST([EVENT_SRC], ["kqueue"]) ]
 )
@@ -101,7 +101,7 @@ AS_IF( [test x"$EVENT_SRC" = x"epoll" ],
         #
         AC_CHECK_FUNCS( [epoll_create1] )
         # checking clock_gettime
-        AC_CHECK_LIB(
+        AC_CHECK_LIB( 
             rt, clock_gettime,,
             AC_MSG_FAILURE([librt not found])
         )

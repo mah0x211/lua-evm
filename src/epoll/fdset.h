@@ -1,4 +1,4 @@
-/**
+/*
  *  Copyright (C) 2014 Masatoshi Teruya
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a
@@ -24,26 +24,29 @@
  *  Created by Masatoshi Teruya on 14/05/27.
  */
 
-#ifndef evm_epoll_fdset_h
-#define evm_epoll_fdset_h
+#ifndef SENTRY_EPOLL_FDSET_H
+#define SENTRY_EPOLL_FDSET_H
+
 
 typedef struct {
     int nevs;
     void **evs;
 } fdset_t;
 
-#define FV_SIZE sizeof(void *)
+#define FV_SIZE sizeof(void*)
+
 
 enum FDSET_MEMBER_TYPE {
     FDSET_READ  = EPOLLIN,
     FDSET_WRITE = EPOLLOUT
 };
 
-static inline int fdset_alloc(fdset_t *set, size_t nfd)
-{
-    set->evs = calloc((size_t)nfd, sizeof(void *));
 
-    if (set->evs) {
+static inline int fdset_alloc( fdset_t *set, size_t nfd )
+{
+    set->evs = calloc( (size_t)nfd, sizeof( void* ) );
+
+    if( set->evs ){
         set->nevs = nfd;
         return 0;
     }
@@ -51,34 +54,39 @@ static inline int fdset_alloc(fdset_t *set, size_t nfd)
     return -1;
 }
 
-static inline int fdset_realloc(fdset_t *set, int fd)
+
+static inline int fdset_realloc( fdset_t *set, int fd )
 {
-    if (fd < 0) {
+    if( fd < 0 ){
         errno = EINVAL;
         return -1;
-    } else if (fd >= set->nevs) {
+    }
+    else if( fd >= set->nevs )
+    {
         // realloc event container
-        void **evs = realloc(set->evs, (fd + 1) * FV_SIZE);
+        void **evs = realloc( set->evs, ( fd + 1 ) * FV_SIZE );
 
-        if (!evs) {
+        if( !evs ){
             return -1;
         }
-        memset(evs + fd, 0, FV_SIZE);
+        memset( evs + fd, 0, FV_SIZE );
         set->nevs = fd;
-        set->evs  = evs;
+        set->evs = evs;
     }
 
     return 0;
 }
 
-static inline void fdset_dealloc(fdset_t *set)
+
+static inline void fdset_dealloc( fdset_t *set )
 {
-    free((void *)set->evs);
+    free( (void*)set->evs );
 }
 
-static inline void *fdismember(fdset_t *set, int fd)
+
+static inline void *fdismember( fdset_t *set, int fd )
 {
-    if (fd < 0 || fd > set->nevs) {
+    if( fd < 0 || fd > set->nevs ){
         errno = EINVAL;
         return NULL;
     }
@@ -86,9 +94,10 @@ static inline void *fdismember(fdset_t *set, int fd)
     return set->evs[fd];
 }
 
-static inline int fdaddset(fdset_t *set, int fd, void *evt)
+
+static inline int fdaddset( fdset_t *set, int fd, void *evt )
 {
-    if (fd < 0 || fd > set->nevs) {
+    if( fd < 0 || fd > set->nevs ){
         errno = EINVAL;
         return -1;
     }
@@ -98,9 +107,9 @@ static inline int fdaddset(fdset_t *set, int fd, void *evt)
     return 0;
 }
 
-static inline int fddelset(fdset_t *set, int fd)
+static inline int fddelset( fdset_t *set, int fd )
 {
-    if (fd < 0 || fd > set->nevs) {
+    if( fd < 0 || fd > set->nevs ){
         errno = EINVAL;
         return -1;
     }
@@ -109,5 +118,6 @@ static inline int fddelset(fdset_t *set, int fd)
 
     return 0;
 }
+
 
 #endif

@@ -1,4 +1,4 @@
-/**
+/*
  *  Copyright (C) 2016 Masatoshi Teruya
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a
@@ -25,36 +25,40 @@
  *
  */
 
-#include "evm_event.h"
+#include "sentry_event.h"
 
-int sev_gc_lua(lua_State *L)
+
+int sev_gc_lua( lua_State *L )
 {
-    evm_ev_t *e = lua_touserdata(L, 1);
+    sentry_ev_t *e = lua_touserdata( L, 1 );
 
     // close descriptor
-    close(e->reg.data.fd);
+    close( e->reg.data.fd );
 
     // release context
-    if (lauxh_isref(e->ctx)) {
-        lauxh_unref(L, e->ctx);
+    if( lauxh_isref( e->ctx ) ){
+        lauxh_unref( L, e->ctx );
     }
 
     return 0;
 }
 
-int sev_rwgc_lua(lua_State *L)
+
+int sev_rwgc_lua( lua_State *L )
 {
-    evm_ev_t *e = lua_touserdata(L, 1);
+    sentry_ev_t *e = lua_touserdata( L, 1 );
 
     // close descriptor
-    if ((int)e->ident != e->reg.data.fd) {
-        close(e->reg.data.fd);
+    if( (int)e->ident != e->reg.data.fd ){
+        close( e->reg.data.fd );
     }
 
     // release context
-    if (lauxh_isref(e->ctx)) {
-        lauxh_unref(L, e->ctx);
+    if( lauxh_isref( e->ctx ) ){
+        lauxh_unref( L, e->ctx );
     }
 
     return 0;
 }
+
+
