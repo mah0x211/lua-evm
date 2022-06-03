@@ -19,13 +19,13 @@
  *  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  *  DEALINGS IN THE SOFTWARE.
  *
- *  sentry.h
+ *  evm.h
  *  lua-sentry
  *  Created by Masatoshi Teruya on 15/08/24.
  */
 
-#ifndef SENTRY_LUA_H
-#define SENTRY_LUA_H
+#ifndef evm_lua_h
+#define evm_lua_h
 
 #include <errno.h>
 #include <limits.h>
@@ -40,12 +40,12 @@
 #include <lualib.h>
 
 #include "lauxhlib.h"
-// sentry headers
+// evm headers
 #include "config.h"
+#include "evm_types.h"
 #include "fdset.h"
-#include "sentry_types.h"
 
-struct sentry_st {
+struct evm_st {
     int fd;
     int nbuf;
     int nreg;
@@ -92,27 +92,27 @@ lua_pushfstring(L, tname ": %p", lua_touserdata(L, 1));                        \
      })
 
 // define module names
-#define SENTRY_MT          "sentry"
-#define SENTRY_EVENT_MT    "sentry.event"
-#define SENTRY_READABLE_MT "sentry.readable"
-#define SENTRY_WRITABLE_MT "sentry.writable"
-#define SENTRY_TIMER_MT    "sentry.timer"
-#define SENTRY_SIGNAL_MT   "sentry.signal"
+#define EVM_MT          "evm"
+#define EVM_EVENT_MT    "evm.event"
+#define EVM_READABLE_MT "evm.readable"
+#define EVM_WRITABLE_MT "evm.writable"
+#define EVM_TIMER_MT    "evm.timer"
+#define EVM_SIGNAL_MT   "evm.signal"
 
 // define prototypes
-LUALIB_API int luaopen_sentry(lua_State *L);
-LUALIB_API int luaopen_sentry_event(lua_State *L);
-LUALIB_API int luaopen_sentry_readable(lua_State *L);
-LUALIB_API int luaopen_sentry_writable(lua_State *L);
-LUALIB_API int luaopen_sentry_timer(lua_State *L);
-LUALIB_API int luaopen_sentry_signal(lua_State *L);
+LUALIB_API int luaopen_evm(lua_State *L);
+LUALIB_API int luaopen_evm_event(lua_State *L);
+LUALIB_API int luaopen_evm_readable(lua_State *L);
+LUALIB_API int luaopen_evm_writable(lua_State *L);
+LUALIB_API int luaopen_evm_timer(lua_State *L);
+LUALIB_API int luaopen_evm_signal(lua_State *L);
 
 // helper functions
 
 // module definition register
-static inline int sentry_define_mt(lua_State *L, const char *tname,
-                                   struct luaL_Reg mmethod[],
-                                   struct luaL_Reg method[])
+static inline int evm_define_mt(lua_State *L, const char *tname,
+                                struct luaL_Reg mmethod[],
+                                struct luaL_Reg method[])
 {
     struct luaL_Reg *ptr = mmethod;
 
@@ -138,7 +138,7 @@ static inline int sentry_define_mt(lua_State *L, const char *tname,
     return 1;
 }
 
-static inline int sentry_increase_evs(sentry_t *s, uint8_t incr)
+static inline int evm_increase_evs(evm_t *s, uint8_t incr)
 {
     // no buffer
     if ((INT_MAX - s->nreg - incr) <= 0) {
@@ -159,7 +159,7 @@ static inline int sentry_increase_evs(sentry_t *s, uint8_t incr)
     return 0;
 }
 
-static inline int sentry_retain_context(lua_State *L, int idx)
+static inline int evm_retain_context(lua_State *L, int idx)
 {
     int ctx = lauxh_refat(L, idx);
 
@@ -172,7 +172,7 @@ static inline int sentry_retain_context(lua_State *L, int idx)
 
 static inline int sev_asa_lua(lua_State *L, const char *mt)
 {
-    sentry_ev_t *e = luaL_checkudata(L, 1, mt);
+    evm_ev_t *e = luaL_checkudata(L, 1, mt);
 
     switch (sev_filter(e)) {
     case EVFILT_READ:
@@ -200,8 +200,8 @@ static inline int sev_asa_lua(lua_State *L, const char *mt)
 
 static inline int sev_context_lua(lua_State *L, const char *mt)
 {
-    sentry_ev_t *e = luaL_checkudata(L, 1, mt);
-    int ctx        = LUA_NOREF;
+    evm_ev_t *e = luaL_checkudata(L, 1, mt);
+    int ctx     = LUA_NOREF;
 
     // check passed argument
     if (lua_gettop(L) > 1) {
@@ -211,7 +211,7 @@ static inline int sev_context_lua(lua_State *L, const char *mt)
             ctx = LUA_REFNIL;
         } else {
             lua_settop(L, 2);
-            ctx = sentry_retain_context(L, 2);
+            ctx = evm_retain_context(L, 2);
         }
     }
 
@@ -236,7 +236,7 @@ static inline int sev_revert_lua(lua_State *L)
 {
     lua_settop(L, 1);
     // set event metatable
-    lauxh_setmetatable(L, SENTRY_EVENT_MT);
+    lauxh_setmetatable(L, EVM_EVENT_MT);
 
     return 1;
 }

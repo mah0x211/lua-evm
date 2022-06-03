@@ -24,8 +24,8 @@
  *  Created by Masatoshi Teruya on 14/05/26.
  */
 
-#ifndef SENTRY_KEVENT_FDSET_H
-#define SENTRY_KEVENT_FDSET_H
+#ifndef evm_kevent_fdset_h
+#define evm_kevent_fdset_h
 
 #include "bitvec.h"
 

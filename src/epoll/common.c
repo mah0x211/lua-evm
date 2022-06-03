@@ -25,11 +25,11 @@
  *
  */
 
-#include "sentry_event.h"
+#include "evm_event.h"
 
 int sev_gc_lua(lua_State *L)
 {
-    sentry_ev_t *e = lua_touserdata(L, 1);
+    evm_ev_t *e = lua_touserdata(L, 1);
 
     // close descriptor
     close(e->reg.data.fd);
@@ -44,7 +44,7 @@ int sev_gc_lua(lua_State *L)
 
 int sev_rwgc_lua(lua_State *L)
 {
-    sentry_ev_t *e = lua_touserdata(L, 1);
+    evm_ev_t *e = lua_touserdata(L, 1);
 
     // close descriptor
     if ((int)e->ident != e->reg.data.fd) {
