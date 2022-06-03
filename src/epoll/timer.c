@@ -29,22 +29,22 @@
 
 static int unwatch_lua(lua_State *L)
 {
-    return sev_unwatch_lua(L, EVM_TIMER_MT, NULL);
+    return evm_ev_unwatch_lua(L, EVM_TIMER_MT, NULL);
 }
 
 static int watch_lua(lua_State *L)
 {
-    return sev_watch_lua(L, EVM_TIMER_MT, NULL);
+    return evm_ev_watch_lua(L, EVM_TIMER_MT, NULL);
 }
 
 static int context_lua(lua_State *L)
 {
-    return sev_context_lua(L, EVM_TIMER_MT);
+    return evm_ev_context_lua(L, EVM_TIMER_MT);
 }
 
 static int asa_lua(lua_State *L)
 {
-    return sev_asa_lua(L, EVM_TIMER_MT);
+    return evm_asa_lua(L, EVM_TIMER_MT);
 }
 
 static int ident_lua(lua_State *L)
@@ -73,8 +73,8 @@ static int renew_lua(lua_State *L)
 static int revert_lua(lua_State *L)
 {
     unwatch_lua(L);
-    sev_gc_lua(L);
-    return sev_revert_lua(L);
+    evm_ev_gc_lua(L);
+    return evm_ev_revert_lua(L);
 }
 
 static int tostring_lua(lua_State *L)
@@ -85,9 +85,9 @@ static int tostring_lua(lua_State *L)
 LUALIB_API int luaopen_evm_timer(lua_State *L)
 {
     struct luaL_Reg mmethod[] = {
-        {"__gc",       sev_gc_lua  },
-        {"__tostring", tostring_lua},
-        {NULL,         NULL        }
+        {"__gc",       evm_ev_gc_lua},
+        {"__tostring", tostring_lua },
+        {NULL,         NULL         }
     };
     struct luaL_Reg method[] = {
         {"revert",  revert_lua },

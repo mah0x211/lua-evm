@@ -111,7 +111,7 @@ static inline int evm_register(evm_ev_t *e)
 
 // MARK: API for evm_ev_t
 
-#define sev_asfd(e, fd, type, oneshot, edge)                                   \
+#define evm_ev_as_fd(e, fd, type, oneshot, edge)                               \
  do {                                                                          \
   /* already watched */                                                        \
   if (fdismember(&(e)->s->fds, (fd), FDSET_##type) == 1) {                     \
@@ -129,17 +129,17 @@ static inline int evm_register(evm_ev_t *e)
   return -1;                                                                   \
  } while (0)
 
-static inline int sev_aswritable(evm_ev_t *e, int fd, int oneshot, int edge)
+static inline int evm_ev_as_writable(evm_ev_t *e, int fd, int oneshot, int edge)
 {
-    sev_asfd(e, fd, WRITE, oneshot, edge);
+    evm_ev_as_fd(e, fd, WRITE, oneshot, edge);
 }
 
-static inline int sev_asreadable(evm_ev_t *e, int fd, int oneshot, int edge)
+static inline int evm_ev_as_readable(evm_ev_t *e, int fd, int oneshot, int edge)
 {
-    sev_asfd(e, fd, READ, oneshot, edge);
+    evm_ev_as_fd(e, fd, READ, oneshot, edge);
 }
 
-static inline int sev_assignal(evm_ev_t *e, int signo, int oneshot)
+static inline int evm_ev_as_signal(evm_ev_t *e, int signo, int oneshot)
 {
     // already watched
     if (sigismember(&e->s->signals, signo)) {
@@ -159,7 +159,7 @@ static inline int sev_assignal(evm_ev_t *e, int signo, int oneshot)
     return -1;
 }
 
-static inline int sev_astimer(evm_ev_t *e, lua_Integer timeout, int oneshot)
+static inline int evm_ev_as_timer(evm_ev_t *e, lua_Integer timeout, int oneshot)
 {
     // set event fields
     EV_SET(&e->reg, (uintptr_t)e, EVFILT_TIMER,
@@ -169,17 +169,17 @@ static inline int sev_astimer(evm_ev_t *e, lua_Integer timeout, int oneshot)
     return evm_register(e);
 }
 
-static inline int sev_is_oneshot(evm_ev_t *e)
+static inline int evm_ev_is_oneshot(evm_ev_t *e)
 {
     return e->reg.flags & EV_ONESHOT;
 }
 
-static inline int sev_is_hup(evm_ev_t *e)
+static inline int evm_ev_is_hup(evm_ev_t *e)
 {
     return e->evt.flags & (EV_EOF | EV_ERROR);
 }
 
-static inline int sev_ident_lua(lua_State *L, const char *mt)
+static inline int evm_ev_ident_lua(lua_State *L, const char *mt)
 {
     evm_ev_t *e = luaL_checkudata(L, 1, mt);
 
@@ -188,7 +188,7 @@ static inline int sev_ident_lua(lua_State *L, const char *mt)
     return 1;
 }
 
-static inline int sev_watch_lua(lua_State *L, const char *mt, evm_ev_t **ev)
+static inline int evm_ev_watch_lua(lua_State *L, const char *mt, evm_ev_t **ev)
 {
     evm_ev_t *e = luaL_checkudata(L, 1, mt);
 
@@ -214,7 +214,8 @@ static inline int sev_watch_lua(lua_State *L, const char *mt, evm_ev_t **ev)
     return 1;
 }
 
-static inline int sev_unwatch_lua(lua_State *L, const char *mt, evm_ev_t **ev)
+static inline int evm_ev_unwatch_lua(lua_State *L, const char *mt,
+                                     evm_ev_t **ev)
 {
     evm_ev_t *e = luaL_checkudata(L, 1, mt);
 
