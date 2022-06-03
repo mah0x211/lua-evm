@@ -1,0 +1,72 @@
+name: test
+
+on: [push]
+
+jobs:
+  luacheck:
+    runs-on: ubuntu-latest
+    steps:
+    -
+      name: Checkout
+      uses: actions/checkout@v2
+      with:
+        submodules: 'true'
+    -
+      name: Setup Lua
+      uses: leafo/gh-actions-lua@v8.0.0
+    -
+      name: Setup Luarocks
+      uses: leafo/gh-actions-luarocks@v4
+    -
+      name: Install Tools
+      run: luarocks install luacheck
+    -
+      name: Run luacheck
+      run: |
+        luacheck .
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        lua-version:
+          - "5.1"
+    steps:
+    -
+      name: Checkout
+      uses: actions/checkout@v2
+      with:
+        submodules: 'true'
+    -
+      name: Setup Lua ${{ matrix.lua-version }}
+      uses: leafo/gh-actions-lua@v8.0.0
+      with:
+        luaVersion: ${{ matrix.lua-version }}
+    -
+      name: Setup Luarocks
+      uses: leafo/gh-actions-luarocks@v4
+    -
+      name: Install
+      run: |
+        luarocks make rockspecs/evm-dev-1.rockspec
+    # -
+    #   name: Install Tools
+    #   run: |
+    #     sudo apt install lcov -y
+    #     luarocks install assert
+    #     luarocks install signal
+    #     luarocks install sleep
+    # -
+    #   name: Run Test
+    #   run: |
+    #     lua ./test/fork_test.lua
+    # -
+    #   name: Generate coverage reports
+    #   run: |
+    #     sh ./covgen.sh
+    # -
+    #   name: Upload c coverage to Codecov
+    #   uses: codecov/codecov-action@v2
+    #   with:
+    #     files: ./coverage/lcov.info
+    #     flags: unittests
