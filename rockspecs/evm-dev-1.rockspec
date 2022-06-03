@@ -1,14 +1,14 @@
 rockspec_format = "3.0"
-package = "sentry"
-version = "scm-1"
+package = "evm"
+version = "dev-1"
 source = {
-    url = "git+https://github.com/mah0x211/lua-sentry.git"
+    url = "git+https://github.com/mah0x211/lua-evm.git",
 }
 description = {
     summary = "kqueue/epoll event module",
     homepage = "https://github.com/mah0x211/lua-sentry",
     license = "MIT/X11",
-    maintainer = "Masatoshi Teruya"
+    maintainer = "Masatoshi Fukunaga",
 }
 dependencies = {
     "lua >= 5.1",
@@ -18,5 +18,5 @@ build = {
     build_command = [[
         autoreconf -ivf && CFLAGS="$(CFLAGS)" CPPFLAGS="-I$(LUA_INCDIR)" LIBFLAG="$(LIBFLAG)" OBJ_EXTENSION="$(OBJ_EXTENSION)" LIB_EXTENSION="$(LIB_EXTENSION)" LIBDIR="$(LIBDIR)" ./configure && make clean && make
     ]],
-    install_command = "make install"
+    install_command = "make install",
 }

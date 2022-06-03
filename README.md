@@ -1,7 +1,7 @@
-lua-sentry
+lua-evm
 ===
 
-kqueue/epoll event sentry module.
+kqueue/epoll event module.
 
 **NOTE: Do not use this module. this module is under heavy development.**
 
@@ -9,48 +9,38 @@ kqueue/epoll event sentry module.
 ## Installation
 
 ```sh
-luarocks install sentry --from=http://mah0x211.github.io/rocks/
+luarocks install evm --server=https://luarocks.org/dev
 ```
 
-## Constants
+## Event Monitor Object
 
+## m, err = evm.new( [bufsize:int] );
 
-## Creating a Sentry Object
-
-### s, err = sentry.new( [bufsize:int] );
-
-returns the sentry object.
-
+creates an `evm` object.
 
 **Parameters**
 
 - `bufsize:int`: event buffer size. (`default 128`)
 
-
 **Returns**
 
-- `s:userdata`: sentry object on success, or nil on failure.
+- `m:event`: `event` object on success, or `nil` on failure.
 - `err:string`: error string.
 
 
 **NOTE: bufsize will be automatically resized to larger than specified size if need more buffer allocation.**
 
 
-### s, err = sentry.default( [bufsize:int] );
+## m, err = evm.default( [bufsize:int] );
 
-returns the default sentry object.
+returns the default `evm` object.
 
-
-**Parameters** and **Returns** are same as sentry.new function.
-
-
-## Sentry Methods
+**Parameters** and **Returns** are same as evm.new function.
 
 
-### ok, err = s:renew()
+## ok, err = m:renew()
 
 renew(recreate) the internal event descriptor.
-
 
 **Returns**
 
@@ -58,18 +48,18 @@ renew(recreate) the internal event descriptor.
 - `err:string`: error string.
 
 
-### ev = s:newevent();
+## ev = m:newevent();
 
-returns the new [empty event object](#empty-event-object-methods).
+creates an [empty event object](#empty-event-object-methods).
 
 **Returns**
 
-- `ev:userdata`: event object.
+- `ev:evm.event`: event object.
 
 
-### evs, err = s:newevents( [nevt:int] );
+## evs, err = m:newevents( [nevt:int] );
 
-returns the table that has new [empty event object(s)](#empty-event-object-methods).
+creates the specified number of [empty event objects](#empty-event-object-methods).
 
 **Parameters**
 
@@ -77,151 +67,147 @@ returns the table that has new [empty event object(s)](#empty-event-object-metho
 
 **Returns**
 
-- `evs:table`: table on success, or nil on failure.
+- `evs:evm.event[]`: list of [empty event object](#empty-event-object-methods) on success, or `nil` on failure.
 - `err:string`: error string.
 
 
-
-### nevt, err = s:wait( [timeout:lua_Integer] )
+## nevt, err = m:wait( [msec] )
 
 wait until event occurring.
 
-
 **Parameters**
 
-- `timeout:lua_Integer`: wait until specified timeout milliseconds. `default: -1(never-timeout)`
-
+- `msec:integer`: wait until specified timeout milliseconds. `default: -1(never-timeout)`
 
 **Returns**
 
-- `nevt:int`: number of the occurred events.
+- `nevt:integer`: number of the occurred events.
 - `err:string`: error string.
 
 
-### ev, ctx, disabled = s:getevent()
+### ev, ctx, disabled = m:getevent()
 
-returns an event object.
-
+get the event object in which the event occurred.
 
 **Returns**
 
-- `ev:userdata`: event object or nil.
+- `ev:evm.*`: event object (`evm.readable`, `evm.writable`, `evm.timer` or `evm.signal`) or `nil`.
 - `ctx:any`: context object.
-- `disabled:boolean`: if true, event is disabled.
+- `disabled:boolean`: if `true`, event object is disabled.
 
 
 ## Empty Event Object Methods
 
-empty event object can be use as following event object;
+empty event object `evm.event` can be use as following event object;
 
-### err = ev:astimer( timeout:number [, ctx:any [, oneshot:boolean]] )
+- `evm.readable`
+- `evm.writable`
+- `evm.timer`
+- `evm.signal`
 
-to use the event object as a timer event.
+## err = ev:astimer( timeout [, ctx [, oneshot]] )
+
+use the event object as a timer event object. (`evm.timer`)
 
 **Parameters**
 
-- `timeout:number`: timeout milliseconds.
+- `timeout:integer`: timeout milliseconds.
 - `ctx:any`: context object.
 - `oneshot:boolean`: automatically unregister this event when event occurred.
+
+**Returns**
+
+- `err:string`: `nil` on success, or error string on failure.
+
+
+## err = ev:assignal( signo [, ctx [, oneshot]] )
+
+use the event object as a signal event object. (`evm.signal`)
+
+**Parameters**
+
+- `signo:integer`: signal number.
+- `ctx:any`: context object.
+- `oneshot:boolean`: automatically unregister this event when event occurred.
+
+**Returns**
+
+- `err:string`: `nil` on success, or error string on failure.
+
+
+## err = ev:asreadable( fd [, ctx [, oneshot [, edge]]] )
+
+use the event object as a readable event object. (`evm.readable`)
+
+**Parameters**
+
+- `fd:integer`: file descriptor.
+- `ctx:any`: context object.
+- `oneshot:boolean`: automatically unregister this event when event occurred.
+- `edge:boolean`: if `true`, use `edge-trigger`. `default: level-trigger`.
 
 
 **Returns**
 
-- `err:string`: nil on success, or error string on failure.
+- `err:string`: `nil` on success, or error string on failure.
 
 
-### err = ev:assignal( signo:int [, ctx:any [, oneshot:boolean]] )
+## err = ev:aswritable( fd [, ctx [, oneshot [, edge]]] )
 
-to use as a signal event.
-
-**Parameters**
-
-- `signo:int`: signal number.
-- `ctx:any`: context object.
-- `oneshot:boolean`: automatically unregister this event when event occurred.
-
-
-**Returns**
-
-- `err:string`: nil on success, or error string on failure.
-
-
-### err = ev:asreadable( fd:int [, ctx:any [, oneshot:boolean [, edge:boolean]]] )
-
-to use as a readable event.
+use the event object as a writable event object. (`evm.writable`)
 
 **Parameters**
 
-- `fd:int`: descriptor.
+- `fd:integer`: file descriptor.
 - `ctx:any`: context object.
 - `oneshot:boolean`: automatically unregister this event when event occurred.
-- `edge:boolean`: using an edge-trigger if specified a true. `default: level-trigger`.
-
+- `edge:boolean`: if `true`, use `edge-trigger`. `default: level-trigger`.
 
 **Returns**
 
-- `err:string`: nil on success, or error string on failure.
-
-
-### err = ev:aswritable( fd:int [, ctx:any [, oneshot:boolean [, edge:boolean]]] )
-
-to use as a writable event.
-
-**Parameters**
-
-- `fd:int`: descriptor.
-- `ctx:any`: context object.
-- `oneshot:boolean`: automatically unregister this event when event occurred.
-- `edge:boolean`: using an edge-trigger if specified a true. `default: level-trigger`.
-
-
-**Returns**
-
-- `err:string`: nil on success, or error string on failure.
+- `err:string`: `nil` on success, or error string on failure.
 
 
 ## Common Methods Of Non-Empty Event Object.
 
 
-### ev = ev:revert()
+## ev = ev:revert()
 
 revert to an empty event object.
 
 **Returns**
 
-- `ev:userdata`: empty event object.
+- `ev:evm.event`: empty-event object.
 
 
-### ok, err = ev:renew( [s] )
+## ok, err = ev:renew( [m] )
 
-renew(rewatch) an event object.
+attach the event object `ev` to the event monitor `m`.
 
 **Parameters**
 
-- `s:userdata`: sentry object.
+- `m:evm`: event monitor object.
 
 **Returns**
 
-- `ok:boolean`: true on success, or false on failure.
+- `ok:boolean`: `true` on success, or `false` on failure.
 - `err:string`: error string.
 
 
-### id = ev:ident()
+## id = ev:ident()
 
-returns an event ident.
-
+get an event ident.
 
 **Returns**
 
 - `id`
-    - `timeout:number` if timer event.
-    - `signo:int` if signal event.
-    - `fd:int` if readable or writable event.
+    - `timeout:number` if `evm.timer` object.
+    - `signo:integer` if `evm.signal` object.
+    - `fd:integer` if `evm.readable` or `evm.writable` object.
 
+## asa = ev:asa()
 
-### asa = ev:asa()
-
-returns an event type.
+get an event type.
 
 
 **Returns**
@@ -229,9 +215,9 @@ returns an event type.
 - `asa:string`: `astimer`, `assignal`, `asreadable` or `aswritable`.
 
 
-### ctx = ev:context( [ctx:any] )
+## ctx = ev:context( [ctx:any] )
 
-returns a current context object, and if argument passed then replace that object to passed argument.
+get the context object associated with the event object, and if argument passed then replace that object to passed argument.
 
 **Parameters**
 
@@ -242,18 +228,17 @@ returns a current context object, and if argument passed then replace that objec
 - `ctx:any`: current context object.
 
 
-### ev:unwatch()
+## ev:unwatch()
 
 unregister this event.
 
 
-### ok, err = ev:watch()
+## ok, err = ev:watch()
 
-register this event.
-
+register this event object to the attached event monitor.
 
 **Returns**
 
-- `ok:boolean`: true on success, or false on failure.
+- `ok:boolean`: `true` on success, or `false` on failure.
 - `err:string`: error string.
 
