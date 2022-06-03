@@ -1,4 +1,4 @@
-/*
+/**
  *  Copyright (C) 2016 Masatoshi Teruya
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a
@@ -27,90 +27,80 @@
 
 #include "sentry_event.h"
 
-
-static int unwatch_lua( lua_State *L )
+static int unwatch_lua(lua_State *L)
 {
-    return sev_unwatch_lua( L, SENTRY_TIMER_MT, NULL );
+    return sev_unwatch_lua(L, SENTRY_TIMER_MT, NULL);
 }
 
-
-static int watch_lua( lua_State *L )
+static int watch_lua(lua_State *L)
 {
-    return sev_watch_lua( L, SENTRY_TIMER_MT, NULL );
+    return sev_watch_lua(L, SENTRY_TIMER_MT, NULL);
 }
 
-
-static int context_lua( lua_State *L )
+static int context_lua(lua_State *L)
 {
-    return sev_context_lua( L, SENTRY_TIMER_MT );
+    return sev_context_lua(L, SENTRY_TIMER_MT);
 }
 
-
-static int asa_lua( lua_State *L )
+static int asa_lua(lua_State *L)
 {
-    return sev_asa_lua( L, SENTRY_TIMER_MT );
+    return sev_asa_lua(L, SENTRY_TIMER_MT);
 }
 
-
-static int ident_lua( lua_State *L )
+static int ident_lua(lua_State *L)
 {
-    sentry_ev_t *e = luaL_checkudata( L, 1, SENTRY_TIMER_MT );
+    sentry_ev_t *e = luaL_checkudata(L, 1, SENTRY_TIMER_MT);
 
-    lua_pushnumber( L, e->reg.data / 1000000000.0 );
+    lua_pushnumber(L, e->reg.data / 1000000000.0);
 
     return 1;
 }
 
-
-static int renew_lua( lua_State *L )
+static int renew_lua(lua_State *L)
 {
-    sentry_ev_t *e = luaL_checkudata( L, 1, SENTRY_TIMER_MT );
-    sentry_t *s = lauxh_optudata( L, 2, SENTRY_MT, NULL );
+    sentry_ev_t *e = luaL_checkudata(L, 1, SENTRY_TIMER_MT);
+    sentry_t *s    = lauxh_optudata(L, 2, SENTRY_MT, NULL);
 
-    lua_settop( L, 1 );
-    unwatch_lua( L );
-    if( s ){
+    lua_settop(L, 1);
+    unwatch_lua(L);
+    if (s) {
         e->s = s;
     }
 
-    return watch_lua( L );
+    return watch_lua(L);
 }
 
-
-static int revert_lua( lua_State *L )
+static int revert_lua(lua_State *L)
 {
-    unwatch_lua( L );
-    sev_gc_lua( L );
-    return sev_revert_lua( L );
+    unwatch_lua(L);
+    sev_gc_lua(L);
+    return sev_revert_lua(L);
 }
 
-
-static int tostring_lua( lua_State *L )
+static int tostring_lua(lua_State *L)
 {
-    return TOSTRING_MT( L, SENTRY_TIMER_MT );
+    return TOSTRING_MT(L, SENTRY_TIMER_MT);
 }
 
-
-LUALIB_API int luaopen_sentry_timer( lua_State *L )
+LUALIB_API int luaopen_sentry_timer(lua_State *L)
 {
     struct luaL_Reg mmethod[] = {
-        { "__gc", sev_gc_lua },
-        { "__tostring", tostring_lua },
-        { NULL, NULL }
+        {"__gc",       sev_gc_lua  },
+        {"__tostring", tostring_lua},
+        {NULL,         NULL        }
     };
     struct luaL_Reg method[] = {
-        { "revert", revert_lua },
-        { "renew", renew_lua },
-        { "ident", ident_lua },
-        { "asa", asa_lua },
-        { "context", context_lua },
-        { "watch", watch_lua },
-        { "unwatch", unwatch_lua },
-        { NULL, NULL }
+        {"revert",  revert_lua },
+        {"renew",   renew_lua  },
+        {"ident",   ident_lua  },
+        {"asa",     asa_lua    },
+        {"context", context_lua},
+        {"watch",   watch_lua  },
+        {"unwatch", unwatch_lua},
+        {NULL,      NULL       }
     };
 
-    sentry_define_mt( L, SENTRY_TIMER_MT, mmethod, method );
+    sentry_define_mt(L, SENTRY_TIMER_MT, mmethod, method);
 
     return 0;
 }
-

@@ -1,4 +1,4 @@
-/*
+/**
  *  Copyright (C) 2015 Masatoshi Teruya
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a
@@ -30,14 +30,12 @@
 #include <sys/event.h>
 
 // kernel event-loop fd creator
-#define sentry_createfd()   kqueue()
-
+#define sentry_createfd() kqueue()
 
 // kernel event structure
-typedef struct kevent   kevt_t;
+typedef struct kevent kevt_t;
 
 typedef struct sentry_st sentry_t;
-
 
 typedef struct {
     sentry_t *s;
@@ -47,10 +45,6 @@ typedef struct {
     int ctx;
 } sentry_ev_t;
 
-
-#define sev_filter(e)   ((e)->reg.filter)
-
+#define sev_filter(e) ((e)->reg.filter)
 
 #endif
-
-

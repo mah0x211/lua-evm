@@ -1,4 +1,4 @@
-/*
+/**
  *  Copyright (C) 2015 Masatoshi Teruya
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a
@@ -27,29 +27,25 @@
 #ifndef SENTRY_LUA_TYPES_H
 #define SENTRY_LUA_TYPES_H
 
-
 #include <sys/epoll.h>
 #include <sys/signalfd.h>
 #include <sys/timerfd.h>
 
-
 // kernel event-loop fd creator
 #if HAVE_EPOLL_CREATE1
-    #define sentry_createfd()   epoll_create1(EPOLL_CLOEXEC)
+# define sentry_createfd() epoll_create1(EPOLL_CLOEXEC)
 #else
-    #define sentry_createfd()   epoll_create(1)
+# define sentry_createfd() epoll_create(1)
 #endif
 
-
 // kernel event structure
-typedef struct epoll_event  kevt_t;
+typedef struct epoll_event kevt_t;
 
 typedef struct sentry_st sentry_t;
 
-
 enum {
-    EVFILT_READ     = EPOLLIN,
-    EVFILT_WRITE    = EPOLLOUT,
+    EVFILT_READ  = EPOLLIN,
+    EVFILT_WRITE = EPOLLOUT,
     EVFILT_TIMER,
     EVFILT_SIGNAL
 };
@@ -64,9 +60,6 @@ typedef struct {
     int ctx;
 } sentry_ev_t;
 
-
-#define sev_filter(e)   ((e)->filter)
+#define sev_filter(e) ((e)->filter)
 
 #endif
-
-

@@ -1,4 +1,4 @@
-/*
+/**
  *  Copyright (C) 2016 Masatoshi Teruya
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a
@@ -27,14 +27,12 @@
 
 #include "sentry_event.h"
 
-
-int sev_gc_lua( lua_State *L )
+int sev_gc_lua(lua_State *L)
 {
-    sentry_ev_t *e = lua_touserdata( L, 1 );
+    sentry_ev_t *e = lua_touserdata(L, 1);
 
     // release context
-    lauxh_unref( L, e->ctx );
+    lauxh_unref(L, e->ctx);
 
     return 0;
 }
-
