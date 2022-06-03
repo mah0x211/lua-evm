@@ -19,31 +19,31 @@
  *  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  *  DEALINGS IN THE SOFTWARE.
  *
- *  kqueue/sentry_types.h
+ *  kqueue/evm_types.h
  *  lua-sentry
  *  Created by Masatoshi Teruya on 15/08/24.
  */
 
-#ifndef SENTRY_KEVENT_TYPES_H
-#define SENTRY_KEVENT_TYPES_H
+#ifndef evm_kevent_types_h
+#define evm_kevent_types_h
 
 #include <sys/event.h>
 
 // kernel event-loop fd creator
-#define sentry_createfd() kqueue()
+#define evm_createfd() kqueue()
 
 // kernel event structure
 typedef struct kevent kevt_t;
 
-typedef struct sentry_st sentry_t;
+typedef struct evm_st evm_t;
 
 typedef struct {
-    sentry_t *s;
+    evm_t *s;
     kevt_t reg;
     kevt_t evt;
     int ref;
     int ctx;
-} sentry_ev_t;
+} evm_ev_t;
 
 #define sev_filter(e) ((e)->reg.filter)
 

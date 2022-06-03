@@ -25,12 +25,12 @@
  *
  */
 
-#include "sentry_event.h"
+#include "evm_event.h"
 
 static int unwatch_lua(lua_State *L)
 {
-    sentry_ev_t *e = NULL;
-    int rc         = sev_unwatch_lua(L, SENTRY_SIGNAL_MT, &e);
+    evm_ev_t *e = NULL;
+    int rc      = sev_unwatch_lua(L, EVM_SIGNAL_MT, &e);
 
     // remove signo from sigset
     if (e) {
@@ -42,8 +42,8 @@ static int unwatch_lua(lua_State *L)
 
 static int watch_lua(lua_State *L)
 {
-    sentry_ev_t *e = NULL;
-    int rc         = sev_watch_lua(L, SENTRY_SIGNAL_MT, &e);
+    evm_ev_t *e = NULL;
+    int rc      = sev_watch_lua(L, EVM_SIGNAL_MT, &e);
 
     // add signo to sigset
     if (e) {
@@ -55,23 +55,23 @@ static int watch_lua(lua_State *L)
 
 static int context_lua(lua_State *L)
 {
-    return sev_context_lua(L, SENTRY_SIGNAL_MT);
+    return sev_context_lua(L, EVM_SIGNAL_MT);
 }
 
 static int asa_lua(lua_State *L)
 {
-    return sev_asa_lua(L, SENTRY_SIGNAL_MT);
+    return sev_asa_lua(L, EVM_SIGNAL_MT);
 }
 
 static int ident_lua(lua_State *L)
 {
-    return sev_ident_lua(L, SENTRY_SIGNAL_MT);
+    return sev_ident_lua(L, EVM_SIGNAL_MT);
 }
 
 static int renew_lua(lua_State *L)
 {
-    sentry_ev_t *e = luaL_checkudata(L, 1, SENTRY_SIGNAL_MT);
-    sentry_t *s    = lauxh_optudata(L, 2, SENTRY_MT, NULL);
+    evm_ev_t *e = luaL_checkudata(L, 1, EVM_SIGNAL_MT);
+    evm_t *s    = lauxh_optudata(L, 2, EVM_MT, NULL);
 
     lua_settop(L, 1);
     unwatch_lua(L);
@@ -91,10 +91,10 @@ static int revert_lua(lua_State *L)
 
 static int tostring_lua(lua_State *L)
 {
-    return TOSTRING_MT(L, SENTRY_SIGNAL_MT);
+    return TOSTRING_MT(L, EVM_SIGNAL_MT);
 }
 
-LUALIB_API int luaopen_sentry_signal(lua_State *L)
+LUALIB_API int luaopen_evm_signal(lua_State *L)
 {
     struct luaL_Reg mmethod[] = {
         {"__gc",       sev_gc_lua  },
@@ -112,7 +112,7 @@ LUALIB_API int luaopen_sentry_signal(lua_State *L)
         {NULL,      NULL       }
     };
 
-    sentry_define_mt(L, SENTRY_SIGNAL_MT, mmethod, method);
+    evm_define_mt(L, EVM_SIGNAL_MT, mmethod, method);
 
     return 0;
 }

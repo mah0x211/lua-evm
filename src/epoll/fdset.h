@@ -24,8 +24,8 @@
  *  Created by Masatoshi Teruya on 14/05/27.
  */
 
-#ifndef SENTRY_EPOLL_FDSET_H
-#define SENTRY_EPOLL_FDSET_H
+#ifndef evm_epoll_fdset_h
+#define evm_epoll_fdset_h
 
 typedef struct {
     int nevs;

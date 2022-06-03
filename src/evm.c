@@ -19,27 +19,27 @@
  *  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  *  DEALINGS IN THE SOFTWARE.
  *
- *  sentry.c
+ *  evm.c
  *  lua-sentry
  *  Created by Masatoshi Teruya on 15/08/24.
  */
 
-#include "sentry_event.h"
+#include "evm_event.h"
 
-static pid_t SENTRY_PID   = -1;
-static int DEFAULT_SENTRY = LUA_NOREF;
+static pid_t EVM_PID   = -1;
+static int DEFAULT_EVM = LUA_NOREF;
 
 static int wait_lua(lua_State *L)
 {
-    sentry_t *s         = luaL_checkudata(L, 1, SENTRY_MT);
+    evm_t *s            = luaL_checkudata(L, 1, EVM_MT);
     // default timeout: -1(never timeout)
     lua_Integer timeout = lauxh_optinteger(L, 2, -1);
-    sentry_ev_t *e      = NULL;
+    evm_ev_t *e         = NULL;
     int isdel           = 0;
 
     // check arguments
     // cleanup current events
-    while ((e = sentry_getev(s, &isdel))) {
+    while ((e = evm_getev(s, &isdel))) {
         if (isdel) {
             isdel  = 0;
             e->ref = lauxh_unref(L, e->ref);
@@ -48,7 +48,7 @@ static int wait_lua(lua_State *L)
     }
 
     // wait event
-    s->nevt = sentry_wait(s, timeout);
+    s->nevt = evm_wait(s, timeout);
     // got errno
     if (s->nevt == -1) {
         switch (errno) {
@@ -75,9 +75,9 @@ static int wait_lua(lua_State *L)
 
 static int getevent_lua(lua_State *L)
 {
-    sentry_t *s    = luaL_checkudata(L, 1, SENTRY_MT);
-    int isdel      = 0;
-    sentry_ev_t *e = sentry_getev(s, &isdel);
+    evm_t *s    = luaL_checkudata(L, 1, EVM_MT);
+    int isdel   = 0;
+    evm_ev_t *e = evm_getev(s, &isdel);
 
     // return event, isdel and context
     if (e) {
@@ -103,23 +103,23 @@ static int getevent_lua(lua_State *L)
     return 0;
 }
 
-static inline void allocevent(lua_State *L, sentry_t *s)
+static inline void allocevent(lua_State *L, evm_t *s)
 {
-    sentry_ev_t *e = lua_newuserdata(L, sizeof(sentry_ev_t));
+    evm_ev_t *e = lua_newuserdata(L, sizeof(evm_ev_t));
 
     // clear
-    memset((void *)e, 0, sizeof(sentry_ev_t));
+    memset((void *)e, 0, sizeof(evm_ev_t));
     e->s   = s;
     e->ctx = LUA_NOREF;
     e->ref = LUA_NOREF;
     // set metatable
-    lauxh_setmetatable(L, SENTRY_EVENT_MT);
+    lauxh_setmetatable(L, EVM_EVENT_MT);
 }
 
 static int newevents_lua(lua_State *L)
 {
-    sentry_t *s = luaL_checkudata(L, 1, SENTRY_MT);
-    int nevt    = (int)lauxh_optinteger(L, 2, 1);
+    evm_t *s = luaL_checkudata(L, 1, EVM_MT);
+    int nevt = (int)lauxh_optinteger(L, 2, 1);
 
     if (nevt > 0) {
         int i = 0;
@@ -143,7 +143,7 @@ static int newevents_lua(lua_State *L)
 
 static int newevent_lua(lua_State *L)
 {
-    sentry_t *s = luaL_checkudata(L, 1, SENTRY_MT);
+    evm_t *s = luaL_checkudata(L, 1, EVM_MT);
 
     allocevent(L, s);
     return 1;
@@ -151,8 +151,8 @@ static int newevent_lua(lua_State *L)
 
 static int renew_lua(lua_State *L)
 {
-    sentry_t *s = luaL_checkudata(L, 1, SENTRY_MT);
-    int fd      = sentry_createfd();
+    evm_t *s = luaL_checkudata(L, 1, EVM_MT);
+    int fd   = evm_createfd();
 
     if (fd != -1) {
         // close unused descriptor
@@ -174,7 +174,7 @@ static int renew_lua(lua_State *L)
 
 static int len_lua(lua_State *L)
 {
-    sentry_t *s = luaL_checkudata(L, 1, SENTRY_MT);
+    evm_t *s = luaL_checkudata(L, 1, EVM_MT);
 
     lua_pushinteger(L, s->nreg);
 
@@ -183,12 +183,12 @@ static int len_lua(lua_State *L)
 
 static int tostring_lua(lua_State *L)
 {
-    return TOSTRING_MT(L, SENTRY_MT);
+    return TOSTRING_MT(L, EVM_MT);
 }
 
 static int gc_lua(lua_State *L)
 {
-    sentry_t *s = lua_touserdata(L, 1);
+    evm_t *s = lua_touserdata(L, 1);
 
     // close if not invalid value
     if (s->fd != -1) {
@@ -200,11 +200,11 @@ static int gc_lua(lua_State *L)
     return 0;
 }
 
-// allocate sentry data
+// allocate evm data
 static int new_lua(lua_State *L)
 {
-    sentry_t *s = NULL;
-    int nbuf    = 128;
+    evm_t *s = NULL;
+    int nbuf = 128;
 
     // check arguments
     // arg#1 number of event buffer size
@@ -216,13 +216,13 @@ static int new_lua(lua_State *L)
         }
     }
 
-    // create and init sentry_t
-    s = lua_newuserdata(L, sizeof(sentry_t));
+    // create and init evm_t
+    s = lua_newuserdata(L, sizeof(evm_t));
     if ((s->evs = pnalloc((size_t)nbuf, kevt_t))) {
         if (fdset_alloc(&s->fds, (size_t)nbuf) == 0) {
             // create event descriptor
-            if ((s->fd = sentry_createfd()) != -1) {
-                lauxh_setmetatable(L, SENTRY_MT);
+            if ((s->fd = evm_createfd()) != -1) {
+                lauxh_setmetatable(L, EVM_MT);
                 s->nbuf = nbuf;
                 s->nreg = 0;
                 s->nevt = 0;
@@ -242,33 +242,33 @@ static int new_lua(lua_State *L)
     return 2;
 }
 
-// create default sentry
+// create default evm
 static int default_lua(lua_State *L)
 {
-    if (lauxh_isref(DEFAULT_SENTRY)) {
-        lauxh_pushref(L, DEFAULT_SENTRY);
-        // return current default sentry
-        if (SENTRY_PID == getpid()) {
+    if (lauxh_isref(DEFAULT_EVM)) {
+        lauxh_pushref(L, DEFAULT_EVM);
+        // return current default evm
+        if (EVM_PID == getpid()) {
             return 1;
         }
-        // create new default sentry
+        // create new default evm
         else {
-            sentry_t *s = luaL_checkudata(L, -1, SENTRY_MT);
+            evm_t *s = luaL_checkudata(L, -1, EVM_MT);
 
             // should close event descriptor
             close(s->fd);
             // invalid value
-            s->fd          = -1;
+            s->fd       = -1;
             // release reference
-            DEFAULT_SENTRY = lauxh_unref(L, DEFAULT_SENTRY);
+            DEFAULT_EVM = lauxh_unref(L, DEFAULT_EVM);
             lua_pop(L, 1);
         }
     }
 
     switch (new_lua(L)) {
     case 1:
-        DEFAULT_SENTRY = lauxh_refat(L, -1);
-        SENTRY_PID     = getpid();
+        DEFAULT_EVM = lauxh_refat(L, -1);
+        EVM_PID     = getpid();
         return 1;
 
     default:
@@ -276,7 +276,7 @@ static int default_lua(lua_State *L)
     }
 }
 
-LUALIB_API int luaopen_sentry(lua_State *L)
+LUALIB_API int luaopen_evm(lua_State *L)
 {
     struct luaL_Reg mmethod[] = {
         {"__gc",       gc_lua      },
@@ -294,14 +294,14 @@ LUALIB_API int luaopen_sentry(lua_State *L)
     };
 
     // register event metatables
-    luaopen_sentry_event(L);
-    luaopen_sentry_readable(L);
-    luaopen_sentry_writable(L);
-    luaopen_sentry_timer(L);
-    luaopen_sentry_signal(L);
+    luaopen_evm_event(L);
+    luaopen_evm_readable(L);
+    luaopen_evm_writable(L);
+    luaopen_evm_timer(L);
+    luaopen_evm_signal(L);
 
-    // register sentry-metatable
-    sentry_define_mt(L, SENTRY_MT, mmethod, method);
+    // register evm-metatable
+    evm_define_mt(L, EVM_MT, mmethod, method);
     // create table
     lua_newtable(L);
     lauxh_pushfn2tbl(L, "new", new_lua);

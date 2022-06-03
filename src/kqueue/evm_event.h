@@ -19,17 +19,17 @@
  *  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  *  DEALINGS IN THE SOFTWARE.
  *
- *  kevent/sentry_event.h
+ *  kevent/evm_event.h
  *  lua-sentry
  *  Created by Masatoshi Teruya on 15/08/24.
  */
 
-#ifndef SENTRY_KEVENT_EVENT_H
-#define SENTRY_KEVENT_EVENT_H
+#ifndef evm_kevent_event_h
+#define evm_kevent_event_h
 
-#include "sentry.h"
+#include "evm.h"
 
-static inline int sentry_wait(sentry_t *s, lua_Integer timeout)
+static inline int evm_wait(evm_t *s, lua_Integer timeout)
 {
     if (timeout > -1) {
         struct timespec ts = {.tv_sec  = timeout / 1000,
@@ -41,11 +41,11 @@ static inline int sentry_wait(sentry_t *s, lua_Integer timeout)
     return kevent(s->fd, NULL, 0, s->evs, (int)s->nreg, NULL);
 }
 
-static inline sentry_ev_t *sentry_getev(sentry_t *s, int *isdel)
+static inline evm_ev_t *evm_getev(evm_t *s, int *isdel)
 {
-    sentry_ev_t *e = NULL;
-    kevt_t *evt    = NULL;
-    int delflg     = 0;
+    evm_ev_t *e = NULL;
+    kevt_t *evt = NULL;
+    int delflg  = 0;
 
 CHECK_NEXT:
     if (s->nevt > 0) {
@@ -90,17 +90,17 @@ CHECK_NEXT:
             }
         }
 
-        e      = (sentry_ev_t *)evt->udata;
+        e      = (evm_ev_t *)evt->udata;
         e->evt = *evt;
     }
 
     return e;
 }
 
-static inline int sentry_register(sentry_ev_t *e)
+static inline int evm_register(evm_ev_t *e)
 {
     // increase event-buffer and set event
-    if (sentry_increase_evs(e->s, 1) == 0 &&
+    if (evm_increase_evs(e->s, 1) == 0 &&
         kevent(e->s->fd, &e->reg, 1, NULL, 0, NULL) == 0) {
         e->s->nreg++;
         return 0;
@@ -109,7 +109,7 @@ static inline int sentry_register(sentry_ev_t *e)
     return -1;
 }
 
-// MARK: API for sentry_ev_t
+// MARK: API for evm_ev_t
 
 #define sev_asfd(e, fd, type, oneshot, edge)                                   \
  do {                                                                          \
@@ -121,7 +121,7 @@ static inline int sentry_register(sentry_ev_t *e)
    EV_SET(&(e)->reg, (uintptr_t)(fd), EVFILT_##type,                           \
           EV_ADD | ((oneshot) ? EV_ONESHOT : 0) | ((edge) ? EV_CLEAR : 0), 0,  \
           0, (void *)(e));                                                     \
-   if (sentry_register(e) == 0) {                                              \
+   if (evm_register(e) == 0) {                                                 \
     return 0;                                                                  \
    }                                                                           \
    fddelset(&(e)->s->fds, (fd), FDSET_##type);                                 \
@@ -129,17 +129,17 @@ static inline int sentry_register(sentry_ev_t *e)
   return -1;                                                                   \
  } while (0)
 
-static inline int sev_aswritable(sentry_ev_t *e, int fd, int oneshot, int edge)
+static inline int sev_aswritable(evm_ev_t *e, int fd, int oneshot, int edge)
 {
     sev_asfd(e, fd, WRITE, oneshot, edge);
 }
 
-static inline int sev_asreadable(sentry_ev_t *e, int fd, int oneshot, int edge)
+static inline int sev_asreadable(evm_ev_t *e, int fd, int oneshot, int edge)
 {
     sev_asfd(e, fd, READ, oneshot, edge);
 }
 
-static inline int sev_assignal(sentry_ev_t *e, int signo, int oneshot)
+static inline int sev_assignal(evm_ev_t *e, int signo, int oneshot)
 {
     // already watched
     if (sigismember(&e->s->signals, signo)) {
@@ -151,7 +151,7 @@ static inline int sev_assignal(sentry_ev_t *e, int signo, int oneshot)
     EV_SET(&e->reg, (uintptr_t)signo, EVFILT_SIGNAL,
            EV_ADD | (oneshot ? EV_ONESHOT : 0), 0, 0, (void *)e);
 
-    if (sentry_register(e) == 0) {
+    if (evm_register(e) == 0) {
         sigaddset(&e->s->signals, signo);
         return 0;
     }
@@ -159,42 +159,42 @@ static inline int sev_assignal(sentry_ev_t *e, int signo, int oneshot)
     return -1;
 }
 
-static inline int sev_astimer(sentry_ev_t *e, lua_Integer timeout, int oneshot)
+static inline int sev_astimer(evm_ev_t *e, lua_Integer timeout, int oneshot)
 {
     // set event fields
     EV_SET(&e->reg, (uintptr_t)e, EVFILT_TIMER,
            EV_ADD | (oneshot ? EV_ONESHOT : 0), NOTE_NSECONDS,
            (intptr_t)(timeout * 1000000LL), (void *)e);
 
-    return sentry_register(e);
+    return evm_register(e);
 }
 
-static inline int sev_is_oneshot(sentry_ev_t *e)
+static inline int sev_is_oneshot(evm_ev_t *e)
 {
     return e->reg.flags & EV_ONESHOT;
 }
 
-static inline int sev_is_hup(sentry_ev_t *e)
+static inline int sev_is_hup(evm_ev_t *e)
 {
     return e->evt.flags & (EV_EOF | EV_ERROR);
 }
 
 static inline int sev_ident_lua(lua_State *L, const char *mt)
 {
-    sentry_ev_t *e = luaL_checkudata(L, 1, mt);
+    evm_ev_t *e = luaL_checkudata(L, 1, mt);
 
     lua_pushinteger(L, e->reg.ident);
 
     return 1;
 }
 
-static inline int sev_watch_lua(lua_State *L, const char *mt, sentry_ev_t **ev)
+static inline int sev_watch_lua(lua_State *L, const char *mt, evm_ev_t **ev)
 {
-    sentry_ev_t *e = luaL_checkudata(L, 1, mt);
+    evm_ev_t *e = luaL_checkudata(L, 1, mt);
 
     if (!lauxh_isref(e->ref)) {
         // register event
-        if (sentry_register(e) != 0) {
+        if (evm_register(e) != 0) {
             // got error
             lua_pushboolean(L, 0);
             lua_pushstring(L, strerror(errno));
@@ -214,10 +214,9 @@ static inline int sev_watch_lua(lua_State *L, const char *mt, sentry_ev_t **ev)
     return 1;
 }
 
-static inline int sev_unwatch_lua(lua_State *L, const char *mt,
-                                  sentry_ev_t **ev)
+static inline int sev_unwatch_lua(lua_State *L, const char *mt, evm_ev_t **ev)
 {
-    sentry_ev_t *e = luaL_checkudata(L, 1, mt);
+    evm_ev_t *e = luaL_checkudata(L, 1, mt);
 
     if (lauxh_isref(e->ref)) {
         struct kevent evt = e->reg;

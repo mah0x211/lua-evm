@@ -25,18 +25,18 @@
  *
  */
 
-#include "sentry_event.h"
+#include "evm_event.h"
 
-typedef int (*fd_initializer)(sentry_ev_t *e, int fd, int oneshot, int edge);
+typedef int (*fd_initializer)(evm_ev_t *e, int fd, int oneshot, int edge);
 
 static int asfd_lua(lua_State *L, fd_initializer proc, const char *mt)
 {
-    int argc       = lua_gettop(L);
-    sentry_ev_t *e = luaL_checkudata(L, 1, SENTRY_EVENT_MT);
-    int fd         = (int)lauxh_checkinteger(L, 2);
-    int ctx        = LUA_NOREF;
-    int oneshot    = 0;
-    int edge       = 0;
+    int argc    = lua_gettop(L);
+    evm_ev_t *e = luaL_checkudata(L, 1, EVM_EVENT_MT);
+    int fd      = (int)lauxh_checkinteger(L, 2);
+    int ctx     = LUA_NOREF;
+    int oneshot = 0;
+    int edge    = 0;
 
     // check arguments
     if (argc > 5) {
@@ -58,7 +58,7 @@ static int asfd_lua(lua_State *L, fd_initializer proc, const char *mt)
     case 3:
         // arg#3 context
         if (!lua_isnoneornil(L, 3)) {
-            ctx = sentry_retain_context(L, 3);
+            ctx = evm_retain_context(L, 3);
         }
     case 2:
         // arg#2 descriptor
@@ -88,21 +88,21 @@ static int asfd_lua(lua_State *L, fd_initializer proc, const char *mt)
 
 static int aswritable_lua(lua_State *L)
 {
-    return asfd_lua(L, sev_aswritable, SENTRY_WRITABLE_MT);
+    return asfd_lua(L, sev_aswritable, EVM_WRITABLE_MT);
 }
 
 static int asreadable_lua(lua_State *L)
 {
-    return asfd_lua(L, sev_asreadable, SENTRY_READABLE_MT);
+    return asfd_lua(L, sev_asreadable, EVM_READABLE_MT);
 }
 
 static int assignal_lua(lua_State *L)
 {
-    int argc       = lua_gettop(L);
-    sentry_ev_t *e = luaL_checkudata(L, 1, SENTRY_EVENT_MT);
-    int signo      = (int)lauxh_checkinteger(L, 2);
-    int ctx        = LUA_NOREF;
-    int oneshot    = 0;
+    int argc    = lua_gettop(L);
+    evm_ev_t *e = luaL_checkudata(L, 1, EVM_EVENT_MT);
+    int signo   = (int)lauxh_checkinteger(L, 2);
+    int ctx     = LUA_NOREF;
+    int oneshot = 0;
 
     // check arguments
     if (argc > 4) {
@@ -119,7 +119,7 @@ static int assignal_lua(lua_State *L)
     case 3:
         // arg#3 context
         if (!lua_isnoneornil(L, 3)) {
-            ctx = sentry_retain_context(L, 3);
+            ctx = evm_retain_context(L, 3);
         }
     case 2:
         // arg#2 signo
@@ -134,7 +134,7 @@ static int assignal_lua(lua_State *L)
         e->ctx = ctx;
         lua_settop(L, 1);
         // set signal metatable
-        lauxh_setmetatable(L, SENTRY_SIGNAL_MT);
+        lauxh_setmetatable(L, EVM_SIGNAL_MT);
         e->ref = lauxh_ref(L);
         return 0;
     }
@@ -149,7 +149,7 @@ static int assignal_lua(lua_State *L)
 static int astimer_lua(lua_State *L)
 {
     int argc            = lua_gettop(L);
-    sentry_ev_t *e      = luaL_checkudata(L, 1, SENTRY_EVENT_MT);
+    evm_ev_t *e         = luaL_checkudata(L, 1, EVM_EVENT_MT);
     lua_Integer timeout = lauxh_checkinteger(L, 2);
     int ctx             = LUA_NOREF;
     int oneshot         = 0;
@@ -168,7 +168,7 @@ static int astimer_lua(lua_State *L)
     case 3:
         // arg#3 context
         if (!lua_isnoneornil(L, 3)) {
-            ctx = sentry_retain_context(L, 3);
+            ctx = evm_retain_context(L, 3);
         }
     case 2:
         // arg#2 timeout
@@ -184,7 +184,7 @@ static int astimer_lua(lua_State *L)
         e->ctx = ctx;
         lua_settop(L, 1);
         // set timer metatable
-        lauxh_setmetatable(L, SENTRY_TIMER_MT);
+        lauxh_setmetatable(L, EVM_TIMER_MT);
         e->ref = lauxh_ref(L);
         return 0;
     }
@@ -199,8 +199,8 @@ static int astimer_lua(lua_State *L)
 // common method
 static int renew_lua(lua_State *L)
 {
-    sentry_ev_t *e = luaL_checkudata(L, 1, SENTRY_EVENT_MT);
-    sentry_t *s    = lauxh_optudata(L, 2, SENTRY_MT, NULL);
+    evm_ev_t *e = luaL_checkudata(L, 1, EVM_EVENT_MT);
+    evm_t *s    = lauxh_optudata(L, 2, EVM_MT, NULL);
 
     lua_settop(L, 0);
     if (s) {
@@ -219,10 +219,10 @@ static int revert_lua(lua_State *L)
 
 static int tostring_lua(lua_State *L)
 {
-    return TOSTRING_MT(L, SENTRY_EVENT_MT);
+    return TOSTRING_MT(L, EVM_EVENT_MT);
 }
 
-LUALIB_API int luaopen_sentry_event(lua_State *L)
+LUALIB_API int luaopen_evm_event(lua_State *L)
 {
     struct luaL_Reg mmethod[] = {
         {"__tostring", tostring_lua},
@@ -238,7 +238,7 @@ LUALIB_API int luaopen_sentry_event(lua_State *L)
         {NULL,         NULL          }
     };
 
-    sentry_define_mt(L, SENTRY_EVENT_MT, mmethod, method);
+    evm_define_mt(L, EVM_EVENT_MT, mmethod, method);
 
     return 0;
 }
