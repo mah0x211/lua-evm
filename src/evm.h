@@ -39,7 +39,7 @@
 #include <lauxlib.h>
 #include <lualib.h>
 
-#include "lauxhlib.h"
+#include <lauxhlib.h>
 // evm headers
 #include "config.h"
 #include "evm_types.h"
