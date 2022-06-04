@@ -9,14 +9,19 @@ SRC+=$(wildcard @EVENT_SRC@/*.c)
 OBJ=$(SRC:.c=.@OBJ_EXTENSION@)
 LIBDIR=@LIBDIR@
 
+ifdef EVM_COVERAGE
+COVFLAGS=--coverage
+endif
+
+.PHONY: all install clean
 
 all: $(OBJ) $(TARGET)
 
 %.o: %.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c $^
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(COVFLAGS) -c $^
 
-$(TARGET): 
-	$(CC) $(LDFLAGS) $(LIBS) -o $@ *.o
+$(TARGET):
+	$(CC) $(LDFLAGS) $(LIBS) $(COVFLAGS) -o $@ *.o
 
 install:
 	mkdir -p $(LIBDIR)
