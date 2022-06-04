@@ -1,4 +1,3 @@
-rockspec_format = "3.0"
 package = "evm"
 version = "dev-1"
 source = {
@@ -12,6 +11,7 @@ description = {
 }
 dependencies = {
     "lua >= 5.1",
+    "lauxhlib >= 0.3.1",
 }
 build = {
     type = "command",
