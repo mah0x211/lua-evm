@@ -170,11 +170,11 @@ static inline int evm_retain_context(lua_State *L, int idx)
     return ctx;
 }
 
-static inline int sev_asa_lua(lua_State *L, const char *mt)
+static inline int evm_asa_lua(lua_State *L, const char *mt)
 {
     evm_ev_t *e = luaL_checkudata(L, 1, mt);
 
-    switch (sev_filter(e)) {
+    switch (evm_ev_filter(e)) {
     case EVFILT_READ:
         lua_pushliteral(L, "asreadable");
         return 1;
@@ -198,7 +198,7 @@ static inline int sev_asa_lua(lua_State *L, const char *mt)
     }
 }
 
-static inline int sev_context_lua(lua_State *L, const char *mt)
+static inline int evm_ev_context_lua(lua_State *L, const char *mt)
 {
     evm_ev_t *e = luaL_checkudata(L, 1, mt);
     int ctx     = LUA_NOREF;
@@ -232,7 +232,7 @@ static inline int sev_context_lua(lua_State *L, const char *mt)
     return 1;
 }
 
-static inline int sev_revert_lua(lua_State *L)
+static inline int evm_ev_revert_lua(lua_State *L)
 {
     lua_settop(L, 1);
     // set event metatable
@@ -242,6 +242,6 @@ static inline int sev_revert_lua(lua_State *L)
 }
 
 // implemented at <epoll or kqueue>/common.c
-int sev_gc_lua(lua_State *L);
+int evm_ev_gc_lua(lua_State *L);
 
 #endif

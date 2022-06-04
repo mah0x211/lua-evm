@@ -30,7 +30,7 @@
 static int unwatch_lua(lua_State *L)
 {
     evm_ev_t *e = NULL;
-    int rc      = sev_unwatch_lua(L, EVM_SIGNAL_MT, &e);
+    int rc      = evm_ev_unwatch_lua(L, EVM_SIGNAL_MT, &e);
 
     // del signo from sigset
     if (e) {
@@ -43,7 +43,7 @@ static int unwatch_lua(lua_State *L)
 static int watch_lua(lua_State *L)
 {
     evm_ev_t *e = NULL;
-    int rc      = sev_watch_lua(L, EVM_SIGNAL_MT, &e);
+    int rc      = evm_ev_watch_lua(L, EVM_SIGNAL_MT, &e);
 
     // add signo to sigset
     if (e) {
@@ -55,17 +55,17 @@ static int watch_lua(lua_State *L)
 
 static int context_lua(lua_State *L)
 {
-    return sev_context_lua(L, EVM_SIGNAL_MT);
+    return evm_ev_context_lua(L, EVM_SIGNAL_MT);
 }
 
 static int asa_lua(lua_State *L)
 {
-    return sev_asa_lua(L, EVM_SIGNAL_MT);
+    return evm_asa_lua(L, EVM_SIGNAL_MT);
 }
 
 static int ident_lua(lua_State *L)
 {
-    return sev_ident_lua(L, EVM_SIGNAL_MT);
+    return evm_ev_ident_lua(L, EVM_SIGNAL_MT);
 }
 
 static int renew_lua(lua_State *L)
@@ -85,8 +85,8 @@ static int renew_lua(lua_State *L)
 static int revert_lua(lua_State *L)
 {
     unwatch_lua(L);
-    sev_gc_lua(L);
-    return sev_revert_lua(L);
+    evm_ev_gc_lua(L);
+    return evm_ev_revert_lua(L);
 }
 
 static int tostring_lua(lua_State *L)
@@ -97,9 +97,9 @@ static int tostring_lua(lua_State *L)
 LUALIB_API int luaopen_evm_signal(lua_State *L)
 {
     struct luaL_Reg mmethod[] = {
-        {"__gc",       sev_gc_lua  },
-        {"__tostring", tostring_lua},
-        {NULL,         NULL        }
+        {"__gc",       evm_ev_gc_lua},
+        {"__tostring", tostring_lua },
+        {NULL,         NULL         }
     };
     struct luaL_Reg method[] = {
         {"revert",  revert_lua },

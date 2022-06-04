@@ -27,7 +27,7 @@
 
 #include "evm_event.h"
 
-int sev_gc_lua(lua_State *L)
+int evm_ev_gc_lua(lua_State *L)
 {
     evm_ev_t *e = lua_touserdata(L, 1);
 
@@ -35,14 +35,12 @@ int sev_gc_lua(lua_State *L)
     close(e->reg.data.fd);
 
     // release context
-    if (lauxh_isref(e->ctx)) {
-        lauxh_unref(L, e->ctx);
-    }
+    e->ctx = lauxh_unref(L, e->ctx);
 
     return 0;
 }
 
-int sev_rwgc_lua(lua_State *L)
+int evm_ev_rwgc_lua(lua_State *L)
 {
     evm_ev_t *e = lua_touserdata(L, 1);
 
@@ -52,9 +50,7 @@ int sev_rwgc_lua(lua_State *L)
     }
 
     // release context
-    if (lauxh_isref(e->ctx)) {
-        lauxh_unref(L, e->ctx);
-    }
+    e->ctx = lauxh_unref(L, e->ctx);
 
     return 0;
 }

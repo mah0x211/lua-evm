@@ -60,6 +60,6 @@ typedef struct {
     int ctx;
 } evm_ev_t;
 
-#define sev_filter(e) ((e)->filter)
+#define evm_ev_filter(e) ((e)->filter)
 
 #endif
