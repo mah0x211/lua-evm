@@ -201,7 +201,7 @@ get an event ident.
 **Returns**
 
 - `id`
-    - `timeout:number` if `evm.timer` object.
+    - `timeout:integer` if `evm.timer` object.
     - `signo:integer` if `evm.signal` object.
     - `fd:integer` if `evm.readable` or `evm.writable` object.
 

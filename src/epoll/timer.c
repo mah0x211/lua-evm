@@ -51,7 +51,7 @@ static int ident_lua(lua_State *L)
 {
     evm_ev_t *e = luaL_checkudata(L, 1, EVM_TIMER_MT);
 
-    lua_pushnumber(L, (double)e->ident);
+    lua_pushinteger(L, e->ident);
 
     return 1;
 }

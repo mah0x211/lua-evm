@@ -163,8 +163,8 @@ static inline int evm_ev_as_timer(evm_ev_t *e, lua_Integer timeout, int oneshot)
 {
     // set event fields
     EV_SET(&e->reg, (uintptr_t)e, EVFILT_TIMER,
-           EV_ADD | (oneshot ? EV_ONESHOT : 0), NOTE_NSECONDS,
-           (intptr_t)(timeout * 1000000LL), (void *)e);
+           EV_ADD | (oneshot ? EV_ONESHOT : 0), 0, (intptr_t)timeout,
+           (void *)e);
 
     return evm_register(e);
 }
