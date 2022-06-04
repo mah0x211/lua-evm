@@ -48,22 +48,25 @@ static int wait_lua(lua_State *L)
     }
 
     // wait event
-    s->nevt = evm_wait(s, timeout);
-    // got errno
-    if (s->nevt == -1) {
-        switch (errno) {
-        // ignore error
-        case ENOENT:
-        case EINTR:
-            s->nevt = 0;
-            errno   = 0;
-            break;
+    s->nevt = 0;
+    if (s->nreg) {
+        s->nevt = evm_wait(s, timeout);
+        // got errno
+        if (s->nevt == -1) {
+            switch (errno) {
+            // ignore error
+            case ENOENT:
+            case EINTR:
+                s->nevt = 0;
+                errno   = 0;
+                break;
 
-        // return error
-        default:
-            lua_pushinteger(L, 0);
-            lua_pushstring(L, strerror(errno));
-            return 2;
+            // return error
+            default:
+                lua_pushinteger(L, 0);
+                lua_pushstring(L, strerror(errno));
+                return 2;
+            }
         }
     }
 

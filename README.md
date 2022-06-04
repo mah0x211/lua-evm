@@ -24,7 +24,7 @@ creates an `evm` object.
 
 **Returns**
 
-- `m:event`: `event` object on success, or `nil` on failure.
+- `m:evm`: `evm` object on success, or `nil` on failure.
 - `err:string`: error string.
 
 
