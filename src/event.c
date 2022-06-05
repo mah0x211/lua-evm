@@ -71,13 +71,15 @@ static int asfd_lua(lua_State *L, fd_initializer proc, const char *mt,
         // set metatable
         lauxh_setmetatable(L, mt);
         e->ref = lauxh_ref(L);
-        return 0;
+        lua_pushboolean(L, 1);
+        return 1;
     }
 
     // got error
     lauxh_unref(L, ctx);
+    lua_pushboolean(L, 0);
     lua_errno_new(L, errno, op);
-    return 1;
+    return 2;
 }
 
 static int aswritable_lua(lua_State *L)
@@ -127,13 +129,15 @@ static int assignal_lua(lua_State *L)
         // set signal metatable
         lauxh_setmetatable(L, EVM_SIGNAL_MT);
         e->ref = lauxh_ref(L);
-        return 0;
+        lua_pushboolean(L, 1);
+        return 1;
     }
 
     // got error
     lauxh_unref(L, ctx);
+    lua_pushboolean(L, 0);
     lua_errno_new(L, errno, "assignal");
-    return 1;
+    return 2;
 }
 
 static int astimer_lua(lua_State *L)
@@ -173,13 +177,15 @@ static int astimer_lua(lua_State *L)
         // set timer metatable
         lauxh_setmetatable(L, EVM_TIMER_MT);
         e->ref = lauxh_ref(L);
-        return 0;
+        lua_pushboolean(L, 1);
+        return 1;
     }
 
     // got error
     lauxh_unref(L, ctx);
+    lua_pushboolean(L, 0);
     lua_errno_new(L, errno, "astimer");
-    return 1;
+    return 2;
 }
 
 // common method

@@ -66,7 +66,7 @@ creates an [empty event object](#empty-event-object-methods).
 - `ev:evm.event`: event object.
 
 
-## evs, err = m:newevents( [nevt:int] );
+## evs = m:newevents( [nevt:int] );
 
 creates the specified number of [empty event objects](#empty-event-object-methods).
 
@@ -76,8 +76,7 @@ creates the specified number of [empty event objects](#empty-event-object-method
 
 **Returns**
 
-- `evs:evm.event[]`: list of [empty event object](#empty-event-object-methods) on success, or `nil` on failure.
-- `err:error`: error object.
+- `evs:evm.event[]`: list of [empty event object](#empty-event-object-methods).
 
 
 ## nevt, err = m:wait( [msec] )
@@ -114,7 +113,8 @@ empty event object `evm.event` can be use as following event object;
 - `evm.timer`
 - `evm.signal`
 
-## err = ev:astimer( timeout [, ctx [, oneshot]] )
+
+## ok, err = ev:astimer( timeout [, ctx [, oneshot]] )
 
 use the event object as a timer event object. (`evm.timer`)
 
@@ -126,10 +126,11 @@ use the event object as a timer event object. (`evm.timer`)
 
 **Returns**
 
-- `err:error`: `nil` on success, or `error` object on failure.
+- `ok:boolean`: `true` on success, or `false` on failure.
+- `err:error`: error object.
 
 
-## err = ev:assignal( signo [, ctx [, oneshot]] )
+## ok, err = ev:assignal( signo [, ctx [, oneshot]] )
 
 use the event object as a signal event object. (`evm.signal`)
 
@@ -141,10 +142,11 @@ use the event object as a signal event object. (`evm.signal`)
 
 **Returns**
 
-- `err:object`: `nil` on success, or `error` object on failure.
+- `ok:boolean`: `true` on success, or `false` on failure.
+- `err:error`: error object.
 
 
-## err = ev:asreadable( fd [, ctx [, oneshot [, edge]]] )
+## ok, err = ev:asreadable( fd [, ctx [, oneshot [, edge]]] )
 
 use the event object as a readable event object. (`evm.readable`)
 
@@ -158,10 +160,11 @@ use the event object as a readable event object. (`evm.readable`)
 
 **Returns**
 
-- `err:object`: `nil` on success, or `error` object on failure.
+- `ok:boolean`: `true` on success, or `false` on failure.
+- `err:error`: error object.
 
 
-## err = ev:aswritable( fd [, ctx [, oneshot [, edge]]] )
+## ok, err = ev:aswritable( fd [, ctx [, oneshot [, edge]]] )
 
 use the event object as a writable event object. (`evm.writable`)
 
@@ -174,7 +177,8 @@ use the event object as a writable event object. (`evm.writable`)
 
 **Returns**
 
-- `err:object`: `nil` on success, or `error` object on failure.
+- `ok:boolean`: `true` on success, or `false` on failure.
+- `err:error`: error object.
 
 
 ## Common Methods Of Non-Empty Event Object.
