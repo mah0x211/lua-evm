@@ -11,7 +11,7 @@ description = {
 }
 dependencies = {
     "lua >= 5.1",
-    "lauxhlib >= 0.3.1",
+    "lauxhlib >= 0.4.0",
 }
 build = {
     type = "command",
