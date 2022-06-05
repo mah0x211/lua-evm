@@ -75,7 +75,7 @@ static int wait_lua(lua_State *L)
     // return error
     default:
         lua_pushinteger(L, 0);
-        lua_pushstring(L, strerror(errno));
+        lua_errno_new(L, errno, "wait");
         return 2;
     }
 }
@@ -132,7 +132,8 @@ static int newevents_lua(lua_State *L)
     if (nevt <= 0) {
         lua_settop(L, 0);
         lua_pushnil(L);
-        lua_pushstring(L, strerror(EINVAL));
+        errno = EINVAL;
+        lua_errno_new(L, EINVAL, "newevents");
         return 2;
     }
 
@@ -160,7 +161,7 @@ static int renew_lua(lua_State *L)
     if (fd == -1) {
         // got error
         lua_pushboolean(L, 0);
-        lua_pushstring(L, strerror(errno));
+        lua_errno_new(L, errno, "renew");
         return 2;
     }
 
@@ -231,8 +232,7 @@ static int new_lua(lua_State *L)
 
     // got error
     lua_pushnil(L);
-    lua_pushstring(L, strerror(errno));
-
+    lua_errno_new(L, errno, "new");
     return 2;
 }
 
@@ -282,6 +282,8 @@ LUALIB_API int luaopen_evm(lua_State *L)
         {"wait",      wait_lua     },
         {NULL,        NULL         }
     };
+
+    lua_errno_loadlib(L);
 
     // register event metatables
     luaopen_evm_event(L);

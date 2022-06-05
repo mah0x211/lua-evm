@@ -37,6 +37,7 @@
 #include <unistd.h>
 // lualib
 #include <lauxhlib.h>
+#include <lua_errno.h>
 // evm headers
 #include "config.h"
 #include "evm_types.h"

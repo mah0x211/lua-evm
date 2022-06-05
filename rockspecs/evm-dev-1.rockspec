@@ -11,6 +11,7 @@ description = {
 }
 dependencies = {
     "lua >= 5.1",
+    "errno >= 0.3.0",
     "lauxhlib >= 0.4.0",
 }
 build = {

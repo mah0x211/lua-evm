@@ -29,7 +29,8 @@
 
 typedef int (*fd_initializer)(evm_ev_t *e, int fd, int oneshot, int edge);
 
-static int asfd_lua(lua_State *L, fd_initializer proc, const char *mt)
+static int asfd_lua(lua_State *L, fd_initializer proc, const char *mt,
+                    const char *op)
 {
     int argc    = lua_gettop(L);
     evm_ev_t *e = luaL_checkudata(L, 1, EVM_EVENT_MT);
@@ -75,19 +76,18 @@ static int asfd_lua(lua_State *L, fd_initializer proc, const char *mt)
 
     // got error
     lauxh_unref(L, ctx);
-    lua_pushstring(L, strerror(errno));
-
+    lua_errno_new(L, errno, op);
     return 1;
 }
 
 static int aswritable_lua(lua_State *L)
 {
-    return asfd_lua(L, evm_ev_as_writable, EVM_WRITABLE_MT);
+    return asfd_lua(L, evm_ev_as_writable, EVM_WRITABLE_MT, "aswritable");
 }
 
 static int asreadable_lua(lua_State *L)
 {
-    return asfd_lua(L, evm_ev_as_readable, EVM_READABLE_MT);
+    return asfd_lua(L, evm_ev_as_readable, EVM_READABLE_MT, "asreadable");
 }
 
 static int assignal_lua(lua_State *L)
@@ -132,8 +132,7 @@ static int assignal_lua(lua_State *L)
 
     // got error
     lauxh_unref(L, ctx);
-    lua_pushstring(L, strerror(errno));
-
+    lua_errno_new(L, errno, "assignal");
     return 1;
 }
 
@@ -179,8 +178,7 @@ static int astimer_lua(lua_State *L)
 
     // got error
     lauxh_unref(L, ctx);
-    lua_pushstring(L, strerror(errno));
-
+    lua_errno_new(L, errno, "astimer");
     return 1;
 }
 

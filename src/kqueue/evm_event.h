@@ -197,7 +197,7 @@ static inline int evm_ev_watch_lua(lua_State *L, const char *mt, evm_ev_t **ev)
         if (evm_register(e) != 0) {
             // got error
             lua_pushboolean(L, 0);
-            lua_pushstring(L, strerror(errno));
+            lua_errno_new(L, errno, "watch");
             return 2;
         }
 
