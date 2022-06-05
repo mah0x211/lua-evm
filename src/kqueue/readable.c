@@ -73,7 +73,6 @@ static int renew_lua(lua_State *L)
     evm_ev_t *e = luaL_checkudata(L, 1, EVM_READABLE_MT);
     evm_t *s    = lauxh_optudata(L, 2, EVM_MT, NULL);
 
-    lua_settop(L, 1);
     unwatch_lua(L);
     if (s) {
         e->s = s;

@@ -47,33 +47,37 @@ static int wait_lua(lua_State *L)
         }
     }
 
-    // wait event
     s->nevt = 0;
-    if (s->nreg) {
-        s->nevt = evm_wait(s, timeout);
-        // got errno
-        if (s->nevt == -1) {
-            switch (errno) {
-            // ignore error
-            case ENOENT:
-            case EINTR:
-                s->nevt = 0;
-                errno   = 0;
-                break;
-
-            // return error
-            default:
-                lua_pushinteger(L, 0);
-                lua_pushstring(L, strerror(errno));
-                return 2;
-            }
-        }
+    if (s->nreg == 0) {
+        // do not wait the event occurrs if no registered events exists
+        lua_pushinteger(L, 0);
+        return 1;
     }
 
-    // return number of event
-    lua_pushinteger(L, s->nevt);
+    // wait event
+    s->nevt = evm_wait(s, timeout);
+    if (s->nevt != -1) {
+        // return number of event
+        lua_pushinteger(L, s->nevt);
+        return 1;
+    }
 
-    return 1;
+    // got errno
+    switch (errno) {
+    // ignore error
+    case ENOENT:
+    case EINTR:
+        s->nevt = 0;
+        errno   = 0;
+        lua_pushinteger(L, 0);
+        return 1;
+
+    // return error
+    default:
+        lua_pushinteger(L, 0);
+        lua_errno_new(L, errno, "wait");
+        return 2;
+    }
 }
 
 static int getevent_lua(lua_State *L)
@@ -82,39 +86,40 @@ static int getevent_lua(lua_State *L)
     int isdel   = 0;
     evm_ev_t *e = evm_getev(s, &isdel);
 
-    // return event, isdel and context
-    if (e) {
-        lauxh_pushref(L, e->ref);
-        // push context if retained
-        if (lauxh_isref(e->ctx)) {
-            lauxh_pushref(L, e->ctx);
-        } else {
-            lua_pushnil(L);
-        }
-
-        // release reference if deleted
-        if (isdel) {
-            lua_pushboolean(L, isdel);
-            e->ref = lauxh_unref(L, e->ref);
-            s->nreg--;
-            return 3;
-        }
-
-        return 2;
+    if (!e) {
+        lua_pushnil(L);
+        return 1;
     }
 
-    return 0;
+    // return event, isdel and context
+    lauxh_pushref(L, e->ref);
+    // push context if retained
+    if (lauxh_isref(e->ctx)) {
+        lauxh_pushref(L, e->ctx);
+    } else {
+        lua_pushnil(L);
+    }
+
+    // release reference if deleted
+    if (isdel) {
+        lua_pushboolean(L, isdel);
+        e->ref = lauxh_unref(L, e->ref);
+        s->nreg--;
+        return 3;
+    }
+
+    return 2;
 }
 
 static inline void allocevent(lua_State *L, evm_t *s)
 {
     evm_ev_t *e = lua_newuserdata(L, sizeof(evm_ev_t));
 
-    // clear
-    memset((void *)e, 0, sizeof(evm_ev_t));
-    e->s   = s;
-    e->ctx = LUA_NOREF;
-    e->ref = LUA_NOREF;
+    *e = (evm_ev_t){
+        .s   = s,
+        .ctx = LUA_NOREF,
+        .ref = LUA_NOREF,
+    };
     // set metatable
     lauxh_setmetatable(L, EVM_EVENT_MT);
 }
@@ -122,32 +127,28 @@ static inline void allocevent(lua_State *L, evm_t *s)
 static int newevents_lua(lua_State *L)
 {
     evm_t *s = luaL_checkudata(L, 1, EVM_MT);
-    int nevt = (int)lauxh_optinteger(L, 2, 1);
+    int nevt = lauxh_optinteger(L, 2, 1);
 
-    if (nevt > 0) {
-        int i = 0;
-
+    if (nevt <= 0) {
         lua_settop(L, 0);
-        lua_createtable(L, nevt, 0);
-        for (; i < nevt; i++) {
-            allocevent(L, s);
-            lua_rawseti(L, -2, i + 1);
-        }
-
-        return 1;
+        lua_pushnil(L);
+        errno = EINVAL;
+        lua_errno_new(L, EINVAL, "newevents");
+        return 2;
     }
 
-    lua_settop(L, 0);
-    lua_pushnil(L);
-    lua_pushstring(L, strerror(EINVAL));
-
-    return 2;
+    lua_settop(L, 1);
+    lua_createtable(L, nevt, 0);
+    for (int i = 1; i <= nevt; i++) {
+        allocevent(L, s);
+        lua_rawseti(L, -2, i);
+    }
+    return 1;
 }
 
 static int newevent_lua(lua_State *L)
 {
     evm_t *s = luaL_checkudata(L, 1, EVM_MT);
-
     allocevent(L, s);
     return 1;
 }
@@ -157,30 +158,26 @@ static int renew_lua(lua_State *L)
     evm_t *s = luaL_checkudata(L, 1, EVM_MT);
     int fd   = evm_createfd();
 
-    if (fd != -1) {
-        // close unused descriptor
-        if (s->fd != fd) {
-            close(s->fd);
-        }
-        s->fd = fd;
-        lua_pushboolean(L, 1);
-
-        return 1;
+    if (fd == -1) {
+        // got error
+        lua_pushboolean(L, 0);
+        lua_errno_new(L, errno, "renew");
+        return 2;
     }
 
-    // got error
-    lua_pushboolean(L, 0);
-    lua_pushstring(L, strerror(errno));
-
-    return 2;
+    // close unused descriptor
+    if (s->fd != fd) {
+        close(s->fd);
+    }
+    s->fd = fd;
+    lua_pushboolean(L, 1);
+    return 1;
 }
 
 static int len_lua(lua_State *L)
 {
     evm_t *s = luaL_checkudata(L, 1, EVM_MT);
-
     lua_pushinteger(L, s->nreg);
-
     return 1;
 }
 
@@ -206,17 +203,13 @@ static int gc_lua(lua_State *L)
 // allocate evm data
 static int new_lua(lua_State *L)
 {
+    int nbuf = lauxh_optinteger(L, 1, 128);
     evm_t *s = NULL;
-    int nbuf = 128;
 
     // check arguments
-    // arg#1 number of event buffer size
-    if (!lua_isnoneornil(L, 1)) {
-        nbuf = (int)lauxh_checkinteger(L, 1);
-        if (nbuf < 1 || nbuf > INT_MAX) {
-            return luaL_error(L, "event buffer value range must be 1 to %d",
+    if (nbuf < 1 || nbuf > INT_MAX) {
+        return lauxh_argerror(L, 1, "event buffer value range must be 1 to %d",
                               INT_MAX);
-        }
     }
 
     // create and init evm_t
@@ -230,7 +223,6 @@ static int new_lua(lua_State *L)
                 s->nreg = 0;
                 s->nevt = 0;
                 sigemptyset(&s->signals);
-
                 return 1;
             }
             fdset_dealloc(&s->fds);
@@ -240,8 +232,7 @@ static int new_lua(lua_State *L)
 
     // got error
     lua_pushnil(L);
-    lua_pushstring(L, strerror(errno));
-
+    lua_errno_new(L, errno, "new");
     return 2;
 }
 
@@ -250,14 +241,11 @@ static int default_lua(lua_State *L)
 {
     if (lauxh_isref(DEFAULT_EVM)) {
         lauxh_pushref(L, DEFAULT_EVM);
-        // return current default evm
         if (EVM_PID == getpid()) {
+            // return current default evm
             return 1;
-        }
-        // create new default evm
-        else {
+        } else {
             evm_t *s = luaL_checkudata(L, -1, EVM_MT);
-
             // should close event descriptor
             close(s->fd);
             // invalid value
@@ -268,15 +256,14 @@ static int default_lua(lua_State *L)
         }
     }
 
-    switch (new_lua(L)) {
-    case 1:
+    // create new default evm
+    if (new_lua(L) == 1) {
         DEFAULT_EVM = lauxh_refat(L, -1);
         EVM_PID     = getpid();
         return 1;
-
-    default:
-        return 2;
     }
+
+    return 2;
 }
 
 LUALIB_API int luaopen_evm(lua_State *L)
@@ -295,6 +282,8 @@ LUALIB_API int luaopen_evm(lua_State *L)
         {"wait",      wait_lua     },
         {NULL,        NULL         }
     };
+
+    lua_errno_loadlib(L);
 
     // register event metatables
     luaopen_evm_event(L);

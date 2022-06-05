@@ -16,6 +16,11 @@ kqueue/epoll event module.
 luarocks install evm --server=https://luarocks.org/dev
 ```
 
+## Error Handling
+
+the functions/methods are return the error object created by https://github.com/mah0x211/lua-errno module.
+
+
 ## Event Monitor Object
 
 ## m, err = evm.new( [bufsize:int] );
@@ -29,7 +34,7 @@ creates an `evm` object.
 **Returns**
 
 - `m:evm`: `evm` object on success, or `nil` on failure.
-- `err:string`: error string.
+- `err:error`: error object.
 
 
 **NOTE: bufsize will be automatically resized to larger than specified size if need more buffer allocation.**
@@ -49,7 +54,7 @@ renew(recreate) the internal event descriptor.
 **Returns**
 
 - `ok:boolean`: true on success, or false on failure.
-- `err:string`: error string.
+- `err:error`: error object.
 
 
 ## ev = m:newevent();
@@ -72,7 +77,7 @@ creates the specified number of [empty event objects](#empty-event-object-method
 **Returns**
 
 - `evs:evm.event[]`: list of [empty event object](#empty-event-object-methods) on success, or `nil` on failure.
-- `err:string`: error string.
+- `err:error`: error object.
 
 
 ## nevt, err = m:wait( [msec] )
@@ -86,7 +91,7 @@ wait until event occurring.
 **Returns**
 
 - `nevt:integer`: number of the occurred events.
-- `err:string`: error string.
+- `err:error`: error object.
 
 
 ### ev, ctx, disabled = m:getevent()
@@ -121,7 +126,7 @@ use the event object as a timer event object. (`evm.timer`)
 
 **Returns**
 
-- `err:string`: `nil` on success, or error string on failure.
+- `err:error`: `nil` on success, or `error` object on failure.
 
 
 ## err = ev:assignal( signo [, ctx [, oneshot]] )
@@ -136,7 +141,7 @@ use the event object as a signal event object. (`evm.signal`)
 
 **Returns**
 
-- `err:string`: `nil` on success, or error string on failure.
+- `err:object`: `nil` on success, or `error` object on failure.
 
 
 ## err = ev:asreadable( fd [, ctx [, oneshot [, edge]]] )
@@ -153,7 +158,7 @@ use the event object as a readable event object. (`evm.readable`)
 
 **Returns**
 
-- `err:string`: `nil` on success, or error string on failure.
+- `err:object`: `nil` on success, or `error` object on failure.
 
 
 ## err = ev:aswritable( fd [, ctx [, oneshot [, edge]]] )
@@ -169,7 +174,7 @@ use the event object as a writable event object. (`evm.writable`)
 
 **Returns**
 
-- `err:string`: `nil` on success, or error string on failure.
+- `err:object`: `nil` on success, or `error` object on failure.
 
 
 ## Common Methods Of Non-Empty Event Object.
@@ -195,7 +200,7 @@ attach the event object `ev` to the event monitor `m`.
 **Returns**
 
 - `ok:boolean`: `true` on success, or `false` on failure.
-- `err:string`: error string.
+- `err:error`: error object.
 
 
 ## id = ev:ident()
@@ -244,5 +249,5 @@ register this event object to the attached event monitor.
 **Returns**
 
 - `ok:boolean`: `true` on success, or `false` on failure.
-- `err:string`: error string.
+- `err:error`: error object.
 

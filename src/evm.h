@@ -36,10 +36,8 @@
 #include <time.h>
 #include <unistd.h>
 // lualib
-#include <lauxlib.h>
-#include <lualib.h>
-
 #include <lauxhlib.h>
+#include <lua_errno.h>
 // evm headers
 #include "config.h"
 #include "evm_types.h"
@@ -62,23 +60,6 @@ struct evm_st {
 #define pcnalloc(n, t)    (t *)calloc(n, sizeof(t))
 #define prealloc(n, t, p) (t *)realloc(p, (n) * sizeof(t))
 #define pdealloc(p)       free((void *)p)
-
-// print message to stdout
-#define plog(fmt, ...) printf(fmt "\n", ##__VA_ARGS__)
-
-#define pflog(f, fmt, ...) printf(#f "(): " fmt "\n", ##__VA_ARGS__)
-
-// print message to stderr
-#define pelog(fmt, ...) fprintf(stderr, fmt "\n", ##__VA_ARGS__)
-
-#define pfelog(f, fmt, ...) fprintf(stderr, #f "(): " fmt "\n", ##__VA_ARGS__)
-
-// print message to stderr with strerror
-#define pelogerr(fmt, ...)                                                     \
- fprintf(stderr, fmt " : %s\n", ##__VA_ARGS__, strerror(errno))
-
-#define pfelogerr(f, fmt, ...)                                                 \
- fprintf(stderr, #f "(): " fmt " : %s\n", ##__VA_ARGS__, strerror(errno))
 
 // helper macros
 #define MSTRCAT(_msg) #_msg
@@ -237,7 +218,6 @@ static inline int evm_ev_revert_lua(lua_State *L)
     lua_settop(L, 1);
     // set event metatable
     lauxh_setmetatable(L, EVM_EVENT_MT);
-
     return 1;
 }
 
