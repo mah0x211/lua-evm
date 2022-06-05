@@ -12,7 +12,7 @@ function testcase.before_all()
 end
 
 function testcase.aswritable()
-    local m = assert(evm.default())
+    local m = assert(evm.new())
     local ev = m:newevent()
     local ctx = {
         'foo/bar',
@@ -21,15 +21,14 @@ function testcase.aswritable()
     local bufsiz = assert(SOCK1:sndbuf())
 
     -- test that event use as a writable event
-    local err = ev:aswritable(SOCK1:fd(), ctx)
-    assert.is_nil(err)
+    assert(ev:aswritable(SOCK1:fd(), ctx))
+    assert.match(ev, '^evm.writable: ', false)
     assert.equal(ev:ident(), SOCK1:fd())
     assert.equal(ev:asa(), 'aswritable')
     assert.equal(ev:context(), ctx)
 
     -- test that event occurs when fd is writable
-    local n
-    n, err = m:wait(5)
+    local n, err = m:wait(5)
     assert.equal(n, 1)
     assert.is_nil(err)
     assert.equal(m:getevent(), ev)
@@ -60,14 +59,12 @@ function testcase.aswritable()
 end
 
 function testcase.aswritable_oneshot()
-    local m = assert(evm.default())
+    local m = assert(evm.new())
     local ev = m:newevent()
-    local err = ev:aswritable(SOCK1:fd(), nil, true)
-    assert.is_nil(err)
+    assert(ev:aswritable(SOCK1:fd(), nil, true))
 
     -- test that event occurs when fd is writable
-    local n
-    n, err = m:wait(5)
+    local n, err = m:wait(5)
     assert.equal(n, 1)
     assert.is_nil(err)
     assert.equal(m:getevent(), ev)
@@ -95,14 +92,12 @@ function testcase.aswritable_oneshot()
 end
 
 function testcase.aswritable_edge_trigger()
-    local m = assert(evm.default())
+    local m = assert(evm.new())
     local ev = m:newevent()
-    local err = ev:aswritable(SOCK1:fd(), nil, nil, true)
-    assert.is_nil(err)
+    assert(ev:aswritable(SOCK1:fd(), nil, nil, true))
 
     -- test that event occurs when fd is writable
-    local n
-    n, err = m:wait(5)
+    local n, err = m:wait(5)
     assert.equal(n, 1)
     assert.is_nil(err)
     assert.equal(m:getevent(), ev)

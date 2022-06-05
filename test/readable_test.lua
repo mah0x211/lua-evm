@@ -12,22 +12,21 @@ function testcase.before_all()
 end
 
 function testcase.asreadable()
-    local m = assert(evm.default())
+    local m = assert(evm.new())
     local ev = m:newevent()
     local ctx = {
         'foo/bar',
     }
 
     -- test that event use as a readable event
-    local err = ev:asreadable(SOCK1:fd(), ctx)
-    assert.is_nil(err)
+    assert(ev:asreadable(SOCK1:fd(), ctx))
+    assert.match(ev, '^evm.readable: ', false)
     assert.equal(ev:ident(), SOCK1:fd())
     assert.equal(ev:asa(), 'asreadable')
     assert.equal(ev:context(), ctx)
 
     -- test that no event occurs if fd is not readable
-    local n
-    n, err = m:wait(5)
+    local n, err = m:wait(5)
     assert.equal(n, 0)
     assert.is_nil(err)
     assert.is_nil(m:getevent())
@@ -56,15 +55,13 @@ function testcase.asreadable()
 end
 
 function testcase.asreadable_oneshot()
-    local m = assert(evm.default())
+    local m = assert(evm.new())
     local ev = m:newevent()
-    local err = ev:asreadable(SOCK1:fd(), nil, true)
-    assert.is_nil(err)
+    assert(ev:asreadable(SOCK1:fd(), nil, true))
 
     -- test that event occurs when fd is readable
     assert(SOCK2:send('hello'))
-    local n
-    n, err = m:wait(5)
+    local n, err = m:wait(5)
     assert.equal(n, 1)
     assert.is_nil(err)
     assert.equal(m:getevent(), ev)
@@ -94,15 +91,13 @@ function testcase.asreadable_oneshot()
 end
 
 function testcase.asreadable_edge_trigger()
-    local m = assert(evm.default())
+    local m = assert(evm.new())
     local ev = m:newevent()
-    local err = ev:asreadable(SOCK1:fd(), nil, nil, true)
-    assert.is_nil(err)
+    assert(ev:asreadable(SOCK1:fd(), nil, nil, true))
 
     -- test that event occurs when fd is readable
     assert(SOCK2:send('hello'))
-    local n
-    n, err = m:wait(5)
+    local n, err = m:wait(5)
     assert.equal(n, 1)
     assert.is_nil(err)
     assert.equal(m:getevent(), ev)

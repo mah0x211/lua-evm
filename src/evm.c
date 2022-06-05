@@ -127,14 +127,10 @@ static inline void allocevent(lua_State *L, evm_t *s)
 static int newevents_lua(lua_State *L)
 {
     evm_t *s = luaL_checkudata(L, 1, EVM_MT);
-    int nevt = lauxh_optinteger(L, 2, 1);
+    int nevt = lauxh_optuinteger(L, 2, 1);
 
     if (nevt <= 0) {
-        lua_settop(L, 0);
-        lua_pushnil(L);
-        errno = EINVAL;
-        lua_errno_new(L, EINVAL, "newevents");
-        return 2;
+        return lauxh_argerror(L, 1, "nevt must be greater than 0");
     }
 
     lua_settop(L, 1);
