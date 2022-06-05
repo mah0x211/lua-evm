@@ -32,24 +32,18 @@ local nrep = 0
 local oneshot = false
 local s = assert(evm.default())
 local e = assert(s:newevent())
-local err = e:assignal(signal.SIGINT, nil, oneshot)
-local nevt, ev
-
-if err then
-    error(err)
-end
+assert(e:assignal(signal.SIGINT, nil, oneshot))
+print('event type', e:asa(), 'assignal')
 
 -- block SIGINT
 assert(signal.block(signal.SIGINT))
-
-print('event type', e:asa(), 'assignal')
-
 print('type ^C')
 repeat
     print('wait #' .. #s)
-    nevt = assert(s:wait(waitsec))
+    local nevt = assert(s:wait(waitsec))
+
     print('got number of event', nevt)
-    ev = s:getevent()
+    local ev = s:getevent()
     while ev do
         nrep = nrep + 1
         assert(e == ev, 'invalid implements')

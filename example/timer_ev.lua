@@ -31,20 +31,16 @@ local oneshot = false
 local sec = 2
 local s = assert(evm.default())
 local e = assert(s:newevent())
-local err = e:astimer(sec, nil, oneshot)
-local nevt, ev
-
-if err then
-    error(err)
-end
+assert(e:astimer(sec, nil, oneshot))
 
 print('event type', e:asa(), 'astimer')
 
 repeat
     print('wait #' .. #s)
-    nevt = assert(s:wait(waitsec))
+    local nevt = assert(s:wait(waitsec))
+
     print('got number of event', nevt)
-    ev = s:getevent()
+    local ev = s:getevent()
     while ev do
         nrep = nrep + 1
         assert(e == ev, 'invalid implements')

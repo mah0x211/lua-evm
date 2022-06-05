@@ -105,14 +105,15 @@ local function accept(server, m)
 
     -- register read event
     local evs = req.evs
-    err = evs[1]:asreadable(sock:fd(), req)
-    if err then
+    local ok
+    ok, err = evs[1]:asreadable(sock:fd(), req)
+    if not ok then
         print('failed to register read event:', err)
         sock:close()
     end
     -- register write event with edge triger
-    err = evs[2]:aswritable(sock:fd(), req, false, true)
-    if err then
+    ok, err = evs[2]:aswritable(sock:fd(), req, false, true)
+    if not ok then
         evs[1]:revert()
         print('failed to register write event:', err)
         sock:close()
@@ -127,8 +128,8 @@ local function run_loop(server)
     local m = assert(evm.default())
     -- register server fd
     local sev = assert(m:newevent())
-    local err = sev:asreadable(server:fd())
-    if err then
+    local ok, err = sev:asreadable(server:fd())
+    if not ok then
         error(err)
     end
 

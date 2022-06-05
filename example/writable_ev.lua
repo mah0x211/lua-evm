@@ -32,20 +32,16 @@ local edgeTrigger = true
 local s = assert(evm.default())
 -- create io watcher: 1 = stdout
 local e = assert(s:newevent())
-local err = e:aswritable(1, oneshot, edgeTrigger)
-local nevt, ev
-
-if err then
-    error(err)
-end
+assert(e:aswritable(1, oneshot, edgeTrigger))
 
 print('event type', e:asa(), 'aswritable')
 
 repeat
     print('wait #' .. #s)
-    nevt = assert(s:wait(waitsec))
+    local nevt = assert(s:wait(waitsec))
+
     print('got number of event', nevt)
-    ev = s:getevent()
+    local ev = s:getevent()
     while ev do
         nrep = nrep + 1
         assert(e == ev, 'invalid implements')
